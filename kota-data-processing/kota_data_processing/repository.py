@@ -17,8 +17,6 @@ def kota_data_processing():
                         "shop_url": os.getenv("SHOP_URL"),
                         "api_version": os.getenv("API_VERSION"),
                         "access_token": os.getenv("ACCESS_TOKEN"),
-                        "api_key": os.getenv("API_KEY"),
-                        "secret": os.getenv("SECRET"),
                     }
                 ),
                 "s3": s3.s3_resource.configured(
