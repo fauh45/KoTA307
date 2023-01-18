@@ -9,15 +9,18 @@ class S3ObjectWrapper:
         self.bucket_name = opts.pop("bucket_name")
         self.client = boto3.client("s3", **opts)
 
+    def _extract_keys_from_list_objects(self, obj_list):
+        return [key["Key"] for key in (obj_list.get("Contents") or [])]
+
     def list(self, prefix: Union[str, None] = None):
         if not prefix:
-            return list(
+            return self._extract_keys_from_list_objects(
                 self.client.list_objects_v2(
                     Bucket=self.bucket_name,
                 )
             )
         else:
-            return list(
+            return self._extract_keys_from_list_objects(
                 self.client.list_objects_v2(
                     Bucket=self.bucket_name, Prefix=prefix
                 )
@@ -25,6 +28,11 @@ class S3ObjectWrapper:
 
     def download(self, object_key: str):
         return self.client.get_object(Bucket=self.bucket_name, Key=object_key)
+
+    def upload(self, file_key: str, upload_body: str):
+        self.client.put_object(
+            Bucket=self.bucket_name, Key=file_key, Body=upload_body
+        )
 
 
 @resource(
