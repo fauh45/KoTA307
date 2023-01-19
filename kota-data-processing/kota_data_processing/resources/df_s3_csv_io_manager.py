@@ -13,7 +13,7 @@ class DataFrameS3CSVIOManage(IOManager):
         self.s3obj = s3obj
 
     def _generate_name(self, name: str):
-        return f"Output/{name}"
+        return f"Output/{name}.csv"
 
     def handle_output(
         self, context: "OutputContext", obj: pd.DataFrame
