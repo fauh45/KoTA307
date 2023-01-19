@@ -1,3 +1,4 @@
+from typing import Union
 import pandas as pd
 import io
 
@@ -12,8 +13,8 @@ class DataFrameS3CSVIOManage(IOManager):
 
         self.s3obj = s3obj
 
-    def _generate_name(self, name: str):
-        return f"Output/{name}.csv"
+    def _generate_name(self, context: Union[OutputContext, InputContext]):
+        return f"Output/{context.asset_key.path[-1] or context.name}.csv"
 
     def handle_output(
         self, context: "OutputContext", obj: pd.DataFrame
@@ -21,10 +22,10 @@ class DataFrameS3CSVIOManage(IOManager):
         stream = io.StringIO()
         obj.to_csv(stream)
 
-        self.s3obj.upload(self._generate_name(context.name), stream.getvalue())
+        self.s3obj.upload(self._generate_name(context), stream.getvalue())
 
     def load_input(self, context: "InputContext") -> pd.DataFrame:
-        return pd.read_csv(self.s3obj.download(self._generate_name(context.upstream_output.name)))  # type: ignore
+        return pd.read_csv(self.s3obj.download(self._generate_name(context)))  # type: ignore
 
 
 @io_manager(required_resource_keys={"s3"})
