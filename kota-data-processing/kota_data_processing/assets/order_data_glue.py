@@ -50,7 +50,9 @@ def cleaned_raw_order_data(raw_merged_exported_order_data: pd.DataFrame):
     df = raw_merged_exported_order_data
 
     # Obfuscating personal data
-    df["Email"].apply(lambda x: hashlib.sha1(str(x).encode()).hexdigest())
+    df["Email"] = df["Email"].apply(
+        lambda x: hashlib.sha1(str(x).encode()).hexdigest()
+    )
 
     # Count how may orders an Email Have
     order_count = df["Email"].value_counts()
