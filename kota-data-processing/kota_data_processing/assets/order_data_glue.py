@@ -32,7 +32,9 @@ def raw_merged_exported_order_data(context, raw_exported_data_list: list[str]):
     s3obj: S3ObjectWrapper = context.resources.s3
 
     downloaded_obj = [
-        s3obj.download(file_name) for file_name in raw_exported_data_list
+        s3obj.download(file_name)
+        for file_name in raw_exported_data_list
+        if file_name is not None
     ]
     read_csv_obj = [
         pd.read_csv(file.get("Body"))  # type: ignore
@@ -58,7 +60,7 @@ def cleaned_raw_order_data(raw_merged_exported_order_data: pd.DataFrame):
     order_count = df["Email"].value_counts()
 
     # Remove all the user which have order less than 2
-    df = df[~df["Email"].isin(order_count[order_count < 2].index)]
+    df = df[~df["Email"].isin(order_count[order_count < 3].index)]
 
     # Remove all orders that ordered "Extra Shipping Cost"
     df = df[~df["Lineitem name"].str.contains("Extra Shipping Cost")]
