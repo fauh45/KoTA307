@@ -160,5 +160,7 @@ cython_debug/
 #.idea/
 
 env/
-kota_data_processing.egg-info/
+*.egg-info/
 tmp*/
+raw-data-processing/
+*.csv

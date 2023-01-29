@@ -1,9 +1,13 @@
 import pandas as pd
 import hashlib
-import shopify
-import json
 
-from dagster import Backoff, RetryPolicy, asset, fs_io_manager
+from dagster import Backoff, RetryPolicy, asset
+from kota_data_processing.helper.glue_description import (
+    glue_order_data_with_description,
+)
+from kota_data_processing.helper.query_product_description import (
+    invalidate_cache,
+)
 from kota_data_processing.resources.df_s3_csv_io_manager import (
     dataframe_s3_csv_io_manager,
 )
@@ -56,62 +60,63 @@ def cleaned_raw_order_data(raw_merged_exported_order_data: pd.DataFrame):
         lambda x: hashlib.sha1(str(x).encode()).hexdigest()
     )
 
+    # Remove all orders that ordered "Extra Shipping Cost"
+    df = df[~df["Lineitem name"].str.contains("Extra Shipping Cost")]
+
+    invalidate_cache()
+
+    return df[["Email", "Lineitem name", "Lineitem sku"]]
+
+
+@asset(description="Raw cleaned main dataset", group_name="main_dataset")
+def raw_cleaned_main_dataset(cleaned_raw_order_data: pd.DataFrame):
+    df = cleaned_raw_order_data
+
     # Count how may orders an Email Have
     order_count = df["Email"].value_counts()
 
     # Remove all the user which have order less than 2
     df = df[~df["Email"].isin(order_count[order_count < 3].index)]
 
-    # Remove all orders that ordered "Extra Shipping Cost"
-    df = df[~df["Lineitem name"].str.contains("Extra Shipping Cost")]
-
-    return df[["Email", "Lineitem name", "Lineitem sku"]]
+    return df
 
 
 @asset(
     required_resource_keys={"shopify"},
-    description="List of all cleaned orders with products details on it",
-    group_name="cleaned_order_data",
+    description="Final main dataset",
+    group_name="main_dataset",
     retry_policy=RetryPolicy(
         max_retries=5, delay=5, backoff=Backoff.EXPONENTIAL
     ),
     io_manager_def=dataframe_s3_csv_io_manager,
 )
-def cleaned_order_data_products(cleaned_raw_order_data: pd.DataFrame):
-    cache = dict()
+def cleaned_main_dataset(raw_cleaned_main_dataset: pd.DataFrame):
+    return glue_order_data_with_description(raw_cleaned_main_dataset)
 
-    def _query_product_description(sku: str):
-        if sku in cache:
-            return cache[sku]
 
-        graphql_query = (
-            'query { products(first:1, query:"sku:%s") { edges { node { description } } } }'
-            % sku
-        )
-        print(graphql_query)
-
-        query_result = json.loads(shopify.GraphQL().execute(graphql_query))
-
-        print(query_result)
-
-        edges = query_result["data"]["products"]["edges"]
-        description = ""
-        if len(edges) < 1:
-            return description
-
-        description = edges[0]["node"]["description"]
-
-        cache[sku] = description
-        return description
-
+@asset(
+    description="Raw cleaned transfer dataset", group_name="transfer_dataset"
+)
+def raw_cleaned_transfer_dataset(cleaned_raw_order_data: pd.DataFrame):
     df = cleaned_raw_order_data
 
-    df["Product description"] = df.apply(
-        lambda x: _query_product_description(x["Lineitem sku"]), axis=1
-    )
-    df["Product description"] = df["Product description"].apply(
-        lambda x: str(x).strip()
-    )
-    df = df[~(df["Product description"] == "")]
+    # Count how may orders an Email Have
+    order_count = df["Email"].value_counts()
+
+    # Remove all the user which have order less than 2
+    df = df[df["Email"].isin(order_count[order_count == 2].index)]
 
     return df
+
+
+@asset(
+    required_resource_keys={"shopify"},
+    description="Final transfer dataset",
+    group_name="transfer_dataset",
+    retry_policy=RetryPolicy(
+        max_retries=5, delay=5, backoff=Backoff.EXPONENTIAL
+    ),
+    io_manager_def=dataframe_s3_csv_io_manager,
+)
+def cleaned_transfer_dataset(raw_cleaned_transfer_dataset: pd.DataFrame):
+    return glue_order_data_with_description(raw_cleaned_transfer_dataset)
