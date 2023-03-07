@@ -5,7 +5,7 @@ from sklearn.model_selection import KFold
 import torch
 import torch.nn as nn
 
-from dataset.pair_dataset import ProductOrderedPair
+from dataset.pair_training_dataset import TrainingProductPairDataset
 from models.pair_embedding import PairEmbeddingModel
 
 
@@ -15,9 +15,8 @@ class ModelTraining:
         model: PairEmbeddingModel,
         model_epoch: int,
         model_lr: float,
-        dataset: ProductOrderedPair,
+        dataset: TrainingProductPairDataset,
         dataset_batch_size: str,
-        dataset_k_split: int = 10,
         model_save: bool = True,
         model_save_path: str = "./",
         model_loss=nn.CosineEmbeddingLoss,
@@ -31,12 +30,13 @@ class ModelTraining:
         self.model_save = model_save
         self.model_loss = model_loss
 
-        self.k_fold = KFold(n_split=dataset_k_split)
-
         now = datetime
         self.model_save_path = f"{model_save_path}/pair_embedding_{model.model_name}_{model_epoch}_{model_loss}_{model_lr}_{now.year}_{now.month}_{now.day}_{now.hour}.pt"
 
         torch.manual_seed(random_seed)
+
+    def load_model(self, path: str):
+        self.model = torch.load(path)
 
     def get_data_loader(self, data):
         return DataLoader(

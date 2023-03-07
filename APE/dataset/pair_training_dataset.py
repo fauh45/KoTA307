@@ -3,7 +3,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 
 
-class ProductOrderedPair(Dataset):
+class TrainingProductPairDataset(Dataset):
     def __init__(self, cleaned_data: pd.DataFrame) -> None:
         super().__init__()
 
@@ -26,9 +26,9 @@ class ProductOrderedPair(Dataset):
         training_dataset_permuted = []
         for group in grouped_training:
             for b, g in permutations(group["Product description"].tolist(), 2):
-                # label are set to 1 on description that are not the same
+                # label are set to 1 on description that are not the same, because of cross selling
                 # to denote that the data are positive pair (a user bought two of it)
-                training_dataset_permuted.append([b, g, 0 if b != g else 1])
+                training_dataset_permuted.append([b, g, 1 if b != g else -1])
 
         return pd.DataFrame(
             training_dataset_permuted,
