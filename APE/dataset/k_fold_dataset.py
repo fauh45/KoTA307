@@ -2,6 +2,7 @@ from sklearn.model_selection import KFold
 
 import pandas as pd
 
+from dataset.cleaner_helper import description_cleaner
 from dataset.pair_training_dataset import TrainingProductPairDataset
 from dataset.recommendation_validation_dataset import (
     RecommendationValidationDataset,
@@ -18,6 +19,9 @@ class KFoldDataset:
     ) -> None:
         df = pd.read_csv(csv_path)
         df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+        df["Product description"] = df["Product description"].apply(
+            description_cleaner
+        )
 
         self.complete_dataset = df
 
@@ -31,6 +35,8 @@ class KFoldDataset:
         self.k_fold = KFold(
             n_splits=splits, shuffle=True, random_state=random_state
         )
+
+        self.unique_items = self.get_all_unique_items(self.complete_dataset)
 
     def __len__(self):
         return self.k_fold.get_n_splits()
@@ -51,3 +57,9 @@ class KFoldDataset:
         )
 
         return train_dataset, validation_dataset
+
+    @staticmethod
+    def get_all_unique_items(cleaned_data: pd.DataFrame) -> pd.DataFrame:
+        return cleaned_data.drop_duplicates(subset=["Lineitem sku"])[
+            ["Lineitem sku", "Product description"]
+        ]

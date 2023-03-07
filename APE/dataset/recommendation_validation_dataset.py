@@ -13,7 +13,7 @@ class RecommendationValidationDataset(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset[index] 
 
     @staticmethod
     def permute_dataset(cleaned_data: pd.DataFrame) -> list[pd.DataFrame]:
