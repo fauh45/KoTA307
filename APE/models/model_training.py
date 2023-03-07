@@ -1,5 +1,6 @@
 from datetime import datetime
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from sklearn.model_selection import KFold
 
 import torch
@@ -16,11 +17,13 @@ class ModelTraining:
         model_epoch: int,
         model_lr: float,
         dataset: TrainingProductPairDataset,
-        dataset_batch_size: str,
+        dataset_batch_size: int,
+        summary_writer: SummaryWriter,
         model_save: bool = True,
         model_save_path: str = "./",
         model_loss=nn.CosineEmbeddingLoss,
         random_seed: int = 69,
+        dry_run: bool = False,
     ) -> None:
         self.model = model
         self.model_epoch = model_epoch
@@ -29,6 +32,8 @@ class ModelTraining:
         self.dataset_batch_size = dataset_batch_size
         self.model_save = model_save
         self.model_loss = model_loss
+        self.summary_writer = summary_writer
+        self.dry_run = dry_run
 
         now = datetime
         self.model_save_path = f"{model_save_path}/pair_embedding_{model.model_name}_{model_epoch}_{model_loss}_{model_lr}_{now.year}_{now.month}_{now.day}_{now.hour}.pt"
@@ -57,6 +62,8 @@ class ModelTraining:
             loss = self.model_loss(model_outputs, labels)
             loss.backwards()
 
+            self.summary_writer.add_scalar("Loss/train", loss.item(), epoch)
+
             # Should we use optimizer Adam, Ada, etc here?
             print(
                 "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
@@ -71,6 +78,9 @@ class ModelTraining:
     def train(self):
         for epoch in range(1, self.model_epoch + 1):
             self.train_each_epoch(epoch)
+
+            if self.dry_run:
+                break
 
         if self.model_save:
             torch.save(self.model.state_dict(), self.model_save_path)
