@@ -24,7 +24,7 @@ class TrainingProductPairDataset(Dataset):
         grouped_training = cleaned_data.groupby("Email")
 
         training_dataset_permuted = []
-        for group in grouped_training:
+        for _, group in grouped_training:
             for b, g in permutations(group["Product description"].tolist(), 2):
                 # label are set to 1 on description that are not the same, because of cross selling
                 # to denote that the data are positive pair (a user bought two of it)
