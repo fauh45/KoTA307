@@ -41,7 +41,9 @@ class Experiment:
 
         self.recommendation_amount = recommendation_amount
 
-        self.experiment_hparams = product(epoch, batch_size, learning_rate)
+        self.experiment_hparams = list(
+            product(epoch, batch_size, learning_rate)
+        )
         self.current_experiment_index = start_experiment_on
 
         self.models = models
@@ -57,11 +59,9 @@ class Experiment:
         self.dry_run = dry_run
 
     def __get_summary_comment(self):
-        current_experiment = self.experiment_hparams[
-            self.current_experiment_index
-        ]
+        current_experiment = self.__get_current_experiment()
 
-        return f"EPOCH_{current_experiment[0]}_BATCH_SIZE_{current_experiment[1]}_LR_{current_experiment[3]}"
+        return f"EPOCH_{current_experiment[0]}_BATCH_SIZE_{current_experiment[1]}_LR_{current_experiment[2]}"
 
     def __get_summary_writer(self):
         return SummaryWriter(log_dir=self.__get_summary_save_path())
@@ -90,6 +90,9 @@ class Experiment:
     def __move_model_index_forward(self):
         self.current_models_index += 1
 
+    def __reset_current_model(self):
+        self.__get_current_model().model_reset()
+
     def __move_experiment_index_forward(self):
         self.current_experiment_index += 1
 
@@ -108,7 +111,9 @@ class Experiment:
             model_lr=hparams[2],
             dataset=dataset,
             summary_writer=self.__get_summary_writer(),
-            model_save_path=self.__get_model_save_dir(),
+            model_save_path=self.__get_model_save_dir(
+                current_model.model_name
+            ),
             dry_run=self.dry_run,
         )
 
@@ -117,6 +122,7 @@ class Experiment:
     def validate(self, dataset: RecommendationValidationDataset):
         current_model = self.__get_current_model()
         current_model.eval()
+        current_model.model_eval()
 
         hparams = self.__get_current_experiment()
 
@@ -201,7 +207,9 @@ class Experiment:
         for _ in range(len(self.models)):
             for _ in range(len(self.experiment_hparams)):
                 self.run_one_experiment()
+
                 self.__move_experiment_index_forward()
+                self.__reset_current_model()
 
                 if self.dry_run:
                     break
