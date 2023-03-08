@@ -50,9 +50,11 @@ class ModelTraining:
 
     def train_each_epoch(self, epoch: int):
         self.model.train()
+        self.model.model_train()
 
         training_data = self.get_data_loader(self.dataset)
 
+        # TODO: Fix dataset shape
         for batch_idx, (descriptions_1, description_2, labels) in enumerate(
             training_data
         ):
