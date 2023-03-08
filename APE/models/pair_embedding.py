@@ -7,8 +7,17 @@ class PairEmbeddingModel(nn.Module):
 
         self.model_name = model_name
 
-    def run_to_model_once(self, input: str):
+    def run_to_model_once(self, sentence_input: str):
         return NotImplementedError("Please implement run_to_model_once method")
+
+    def model_train(self):
+        pass
+
+    def model_eval(self):
+        pass
+
+    def model_reset(self):
+        pass
 
     def forward(self, description_1: str, description_2: str):
         desc_1_emb = self.run_to_model_once(description_1)
