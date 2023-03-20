@@ -1,4 +1,6 @@
 from elmoformanylangs import Embedder
+import torch
+import numpy as np
 
 from models.pair_embedding import PairEmbeddingModel
 
@@ -19,9 +21,13 @@ class ELMoPairModel(PairEmbeddingModel):
         return [cleaned_desc]
 
     def run_to_model_once(self, sentence_input: str):
-        return self.__embedder.sents2elmo(
-            self.__split_description(sentence_input)
-        )
+        # TODO: Not really sure about this one, is it really updating the weights of the ELMo model?
+        return torch.tensor(
+            self.__embedder.sents2elmo(
+                self.__split_description(sentence_input)
+            ),
+            requires_grad=True,
+        )[0]
 
     def model_eval(self):
         self.__model.eval()

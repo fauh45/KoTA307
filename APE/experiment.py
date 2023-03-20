@@ -136,6 +136,7 @@ class Experiment:
                 "embeddings"
             ].values.tolist()[0]
 
+        # TODO: Problem with Pandas output on a dataset
         validation_data = DataLoader(dataset, batch_size=hparams[1])
 
         with torch.no_grad():
