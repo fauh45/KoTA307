@@ -9,6 +9,7 @@ from scipy.stats import pearsonr
 
 import os
 import torch
+import numpy as np
 
 from dataset.k_fold_dataset import KFoldDataset
 from dataset.pair_training_dataset import TrainingProductPairDataset
@@ -34,6 +35,7 @@ class Experiment:
         start_experiment_on: int = 0,
         save_dir: str = "",
         dry_run: bool = False,
+        validate_only: bool = False,
     ) -> None:
         self.__k_fold_dataset = KFoldDataset(
             dataset_path, min_product_bought, k_splits
@@ -49,14 +51,17 @@ class Experiment:
         self.models = models
         self.current_models_index = start_models_on
 
-        if save_dir == "":
+        if not save_dir or save_dir == "":
             self.save_dir = (
-                f"./Experiment_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+                f"Experiment_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
             )
         else:
             self.save_dir = save_dir
 
+        self.save_dir = os.getcwd() + "/" + self.save_dir
+
         self.dry_run = dry_run
+        self.validate_only = validate_only
 
     def __get_summary_comment(self):
         current_experiment = self.__get_current_experiment()
@@ -82,6 +87,9 @@ class Experiment:
         return self.models[self.current_models_index]
 
     def __create_embeddings(self, description: str):
+        if self.validate_only:
+            # Faster Testing
+            return [[1, 2, 3]]
         return self.__get_current_model().run_to_model_once(description)
 
     def __compare_embeddings(self, emb1, emb2):
@@ -127,63 +135,71 @@ class Experiment:
         hparams = self.__get_current_experiment()
 
         all_unique_item = self.__k_fold_dataset.unique_items
+
         all_unique_item["embeddings"] = all_unique_item[
             "Product description"
         ].apply(self.__create_embeddings)
 
         def get_embeddings(sku: str):
-            return all_unique_item[all_unique_item["Lineitem sku"] == sku][
-                "embeddings"
-            ].values.tolist()[0]
+            return all_unique_item.at[sku, "embeddings"]
 
-        # TODO: Problem with Pandas output on a dataset
-        validation_data = DataLoader(dataset, batch_size=hparams[1])
+        validation_data = DataLoader(
+            dataset, batch_size=hparams[1], collate_fn=lambda x: x
+        )
 
         with torch.no_grad():
-            total_corr = 0
-            total_items = 0
+            corr = []
 
             for batch in validation_data:
                 for seed, label in batch:
                     seed_embeddings = get_embeddings(seed["Lineitem sku"])
 
                     embeddings_distance = (
-                        all_unique_item["embeddings"]
+                        all_unique_item.loc[
+                            all_unique_item.index != seed["Lineitem sku"]
+                        ]["embeddings"]
                         .apply(
                             lambda emb2: self.__compare_embeddings(
                                 seed_embeddings, emb2
                             )
                         )
-                        .sort_values(ascending=True)
-                        .head(self.recommendation_amount)
+                        .sort_values(ascending=False)
+                        .head(len(label))
                     )
 
-                    selected_items = all_unique_item[embeddings_distance.index]
+                    selected_items = all_unique_item[
+                        all_unique_item.index.isin(embeddings_distance.index)
+                    ]
 
-                    corr = 0
-                    # Edge cased, where label might be more than selected items
-                    # But len(selected_items) <= len(label), which one to choose?
-                    for i, item in enumerate(selected_items):
-                        corr += pearsonr(
-                            item["embeddings"], label[i]["embeddings"]
+                    label["embeddings"] = label["Lineitem sku"].apply(
+                        get_embeddings
+                    )
+
+                    for i, item in enumerate(selected_items.iterrows()):
+                        corr.append(
+                            pearsonr(
+                                item[1]["embeddings"][0],
+                                label.at[i, "embeddings"][0],
+                            ).statistic
                         )
 
-                    total_corr += corr
-                    total_items += len(selected_items)
-
-            total_corr /= total_items
+                print("\nBatch done!")
+                print("Avg Correlation", np.average(corr))
+                print("\n")
 
             print(
-                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Total correlation {total_corr}"
+                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(corr)}"
             )
 
-            return total_corr
+            return np.average(corr)
 
     def run_one_experiment(self):
         summary_writer = self.__get_summary_writer()
 
         for train_dataset, validate_dataset in self.__k_fold_dataset:
-            self.train(train_dataset)
+            if not self.validate_only:
+                self.train(train_dataset)
+
             total_corr = self.validate(validate_dataset)
 
             hparams = self.__get_current_experiment()
@@ -196,7 +212,7 @@ class Experiment:
                     "batch_size": hparams[1],
                     "lr": hparams[2],
                 },
-                {"hparam/corr": total_corr},
+                {"hparam/avg_corr": total_corr},
                 run_name=os.path.dirname(
                     os.path.realpath(__file__)
                     + os.sep

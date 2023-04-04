@@ -31,12 +31,15 @@ class KFoldDataset:
         # Only do training and validation with buyer that already bought 2 or more
         uniquer_buyer = uniquer_buyer[uniquer_buyer >= min_product_bought]
 
-        self.unique_buyer = uniquer_buyer
+        self.unique_buyer = uniquer_buyer.index.to_list()
         self.k_fold = KFold(
             n_splits=splits, shuffle=True, random_state=random_state
         )
 
         self.unique_items = self.get_all_unique_items(self.complete_dataset)
+
+    def recreate_unique_from_index(self, list_of_index: list) -> list:
+        return [self.unique_buyer[i] for i in list_of_index]
 
     def __len__(self):
         return self.k_fold.get_n_splits()
@@ -50,10 +53,18 @@ class KFoldDataset:
         (train_index, validation_index) = next(self.k_fold_split)
 
         train_dataset = TrainingProductPairDataset(
-            self.complete_dataset.loc[train_index]
+            self.complete_dataset[
+                self.complete_dataset["Email"].isin(
+                    self.recreate_unique_from_index(train_index)
+                )
+            ]
         )
         validation_dataset = RecommendationValidationDataset(
-            self.complete_dataset.loc[validation_index]
+            self.complete_dataset[
+                self.complete_dataset["Email"].isin(
+                    self.recreate_unique_from_index(validation_index)
+                )
+            ]
         )
 
         return train_dataset, validation_dataset
@@ -62,4 +73,4 @@ class KFoldDataset:
     def get_all_unique_items(cleaned_data: pd.DataFrame) -> pd.DataFrame:
         return cleaned_data.drop_duplicates(subset=["Lineitem sku"])[
             ["Lineitem sku", "Product description"]
-        ]
+        ].set_index("Lineitem sku")

@@ -13,7 +13,7 @@ class RecommendationValidationDataset(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, index):
-        return self.dataset[index] 
+        return self.dataset[index]
 
     @staticmethod
     def permute_dataset(cleaned_data: pd.DataFrame) -> list[pd.DataFrame]:
@@ -21,17 +21,20 @@ class RecommendationValidationDataset(Dataset):
 
         validation_dataset_permuted = []
         for _, v in email_grouped:
-            temp_group = v.reset_index()
+            email_grouped_reset_index = v.reset_index()
 
             # Take one input, and use the rest as the label
             # e.g. [p1, p2, p3], dataset would be
             # p1 (seed input) -> {p2, p3} (label)
             # p2 -> (p1, p3)
             # p3 -> (p1, p2)
-            for i in range(len(temp_group)):
-                val_input = temp_group.loc[i]
-                val_label = temp_group.drop(i)
+            for i in range(len(email_grouped_reset_index)):
+                val_input = email_grouped_reset_index.loc[i]
+                val_ground_truth = email_grouped_reset_index.drop(i).reset_index(drop=True)
 
-                validation_dataset_permuted.append([val_input, val_label])
+                validation_dataset_permuted.append(
+                    [val_input, val_ground_truth]
+                )
 
+        # print(validation_dataset_permuted[0])
         return validation_dataset_permuted

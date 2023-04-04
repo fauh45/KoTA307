@@ -78,6 +78,10 @@ class ModelTraining:
                     )
                 )
 
+                if self.dry_run:
+                    print("\n\nDRY RUN, BREAKING AFTER 100 BATCH SIZE\n\n")
+                    break
+
         self.summary_writer.add_scalar(
             "Loss/Train", loss.item(), global_step=epoch
         )
@@ -87,9 +91,6 @@ class ModelTraining:
             self.train_each_epoch(epoch)
 
             print(f"\n\nDone with epoch {epoch}\n\n")
-
-            if self.dry_run:
-                break
 
         if self.model_save:
             torch.save(self.model.state_dict(), self.model_save_path)

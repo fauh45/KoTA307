@@ -33,9 +33,17 @@ def start_experiment():
         action=argparse.BooleanOptionalAction,
         help="If the the experiment run is a dry run",
     )
+    parser.add_argument(
+        "--validate-only",
+        action=argparse.BooleanOptionalAction,
+        help="Only run the validation portion of the experiment",
+    )
 
     try:
         args = parser.parse_args()
+
+        if args.dry_run:
+            print("\n\nRUNNING DRY!\n\n")
 
         device = (
             torch.device("cuda")
@@ -57,7 +65,8 @@ def start_experiment():
             batch_size={8, 16, 32},
             learning_rate={1e-5, 3e-5, 5e-5},
             dry_run=args.dry_run,
-            save_dir="./experiment_output",
+            validate_only=args.validate_only,
+            save_dir="experiment_output",
         )
 
         experiment.run_experiment()
