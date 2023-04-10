@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, BertModel
+from transformers import AutoTokenizer, BertModel, AutoModel
 
 from models.pair_embedding import PairEmbeddingModel
 
@@ -10,13 +10,13 @@ class BERTPairModel(PairEmbeddingModel):
         self.__pretrained_name = pretrained_name
 
         self.__tokenizer = AutoTokenizer.from_pretrained(pretrained_name)
-        self.__model = BertModel.from_pretrained(pretrained_name)
+        self.__model = AutoModel.from_pretrained(pretrained_name)
 
     def __tokenize(self, sentence_input: str):
         return self.__tokenizer(
             sentence_input,
-            return_tensor="pt",
-            add_special_token=True,
+            return_tensors="pt",
+            padding=True,
             truncation=True,
             max_length=512,
         )
@@ -37,4 +37,4 @@ class BERTPairModel(PairEmbeddingModel):
         self.__tokenizer = AutoTokenizer.from_pretrained(
             self.__pretrained_name
         )
-        self.__model = BertModel.from_pretrained(self.__pretrained_name)
+        self.__model = AutoModel.from_pretrained(self.__pretrained_name)

@@ -149,6 +149,9 @@ class Experiment:
 
         with torch.no_grad():
             corr = []
+            precision = []
+            recall = []
+            f1_score = []
 
             for batch in validation_data:
                 for seed, label in batch:
@@ -171,6 +174,37 @@ class Experiment:
                         all_unique_item.index.isin(embeddings_distance.index)
                     ]
 
+                    n_recommended = len(label)
+                    n_relevant_and_recommended = len(
+                        np.intersect1d(
+                            selected_items.index, label["Lineitem sku"]
+                        )
+                    )
+                    n_relevant_not_recommended = len(
+                        np.setdiff1d(
+                            label["Lineitem sku"], selected_items.index
+                        )
+                    )
+                    n_relevant = (
+                        n_relevant_and_recommended + n_relevant_not_recommended
+                    )
+
+                    batch_precision = (
+                        n_relevant_and_recommended / n_recommended
+                    )
+                    batch_recall = n_relevant_and_recommended / n_relevant
+
+                    if (batch_recall + batch_precision) > 0:
+                        batch_f1_score = (
+                            2 * batch_recall * batch_precision
+                        ) / (batch_recall + batch_precision)
+                    else:
+                        batch_f1_score = 0
+
+                    precision.append(batch_precision)
+                    recall.append(batch_recall)
+                    f1_score.append(batch_f1_score)
+
                     label["embeddings"] = label["Lineitem sku"].apply(
                         get_embeddings
                     )
@@ -185,13 +219,21 @@ class Experiment:
 
                 print("\nBatch done!")
                 print("Avg Correlation", np.average(corr))
+                print("Avg Precision", np.average(precision))
+                print("Avg Recall", np.average(recall))
+                print("Avg F1 Score", np.average(f1_score))
                 print("\n")
 
             print(
-                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(corr)}"
+                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
             )
 
-            return np.average(corr)
+            return (
+                np.average(corr),
+                np.average(precision),
+                np.average(recall),
+                np.average(f1_score),
+            )
 
     def run_one_experiment(self):
         summary_writer = self.__get_summary_writer()
@@ -200,7 +242,9 @@ class Experiment:
             if not self.validate_only:
                 self.train(train_dataset)
 
-            total_corr = self.validate(validate_dataset)
+            avg_corr, avg_precision, avg_recall, avg_f1 = self.validate(
+                validate_dataset
+            )
 
             hparams = self.__get_current_experiment()
             model_name = self.__get_current_model().model_name
@@ -212,12 +256,13 @@ class Experiment:
                     "batch_size": hparams[1],
                     "lr": hparams[2],
                 },
-                {"hparam/avg_corr": total_corr},
-                run_name=os.path.dirname(
-                    os.path.realpath(__file__)
-                    + os.sep
-                    + self.__get_summary_save_path()
-                ),
+                {
+                    "hparam/avg_corr": avg_corr,
+                    "hparam/avg_precision": avg_precision,
+                    "hparam/avg_recall": avg_recall,
+                    "hparam/avg_f1": avg_f1,
+                },
+                run_name=os.path.dirname(self.__get_summary_save_path()),
             )
 
     def run_experiment(self):

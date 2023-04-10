@@ -56,7 +56,7 @@ def start_experiment():
         bert_model = BERTPairModel(args.bert_path)
 
         experiment = Experiment(
-            models=[elmo_model, bert_model],
+            models=[bert_model, elmo_model],
             dataset_path=args.dataset_path,
             k_splits=10,
             recommendation_amount=3,
