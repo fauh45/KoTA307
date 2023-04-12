@@ -95,10 +95,11 @@ class ModelTraining:
         )
 
     def train(self):
-        for epoch in trange(1, self.model_epoch + 1, desc="Epoch"):
-            self.train_each_epoch(epoch)
+        with torch.enable_grad():
+            for epoch in trange(1, self.model_epoch + 1, desc="Epoch"):
+                self.train_each_epoch(epoch)
 
-            print(f"\n\nDone with epoch {epoch}\n\n")
+                print(f"\n\nDone with epoch {epoch}\n\n")
 
         if self.model_save:
             torch.save(self.model.state_dict(), self.model_save_path)
