@@ -25,6 +25,7 @@ class ModelTraining:
         model_loss=nn.CosineEmbeddingLoss(),
         random_seed: int = 69,
         dry_run: bool = False,
+        gpu: bool = False,
     ) -> None:
         self.model = model
         self.model_epoch = model_epoch
@@ -62,7 +63,12 @@ class ModelTraining:
             self.model_loss.zero_grad()
 
             model_outputs = self.model(descriptions_1, description_2)
-            loss = self.model_loss(*model_outputs, labels)
+
+            temp_label = labels
+            if gpu:
+                temp_label = torch.tensor(labels).to("cuda")
+
+            loss = self.model_loss(*model_outputs, temp_label)
             loss.backward()
 
             if batch_idx % 100 == 0:
