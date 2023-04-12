@@ -1,4 +1,10 @@
+from tempfile import mkdtemp
+
+import os.path as path
 import torch.nn as nn
+import numpy as np
+import random
+import string
 
 
 class PairEmbeddingModel(nn.Module):
@@ -9,6 +15,27 @@ class PairEmbeddingModel(nn.Module):
 
     def run_to_model_once(self, sentence_input: str):
         return NotImplementedError("Please implement run_to_model_once method")
+
+    def generate_temp_file_path(self):
+        return path.join(
+            mkdtemp(),
+            "".join(
+                random.choices(string.ascii_uppercase + string.digits, k=10)
+            )
+            + ".dat",
+        )
+
+    def to_memmap(self, array: np.ndarray):
+        mmp = np.memmap(
+            self.generate_temp_file_path(),
+            dtype=array.dtype,
+            mode="w+",
+            shape=array.shape,
+        )
+        mmp[:] = array[:]
+        mmp.flush()
+
+        return mmp
 
     def model_train(self):
         pass

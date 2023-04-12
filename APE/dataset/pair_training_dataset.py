@@ -1,5 +1,5 @@
 from itertools import permutations
-import pandas as pd
+import modin.pandas as pd
 from torch.utils.data import Dataset
 
 

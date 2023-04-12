@@ -1,6 +1,6 @@
 from sklearn.model_selection import KFold
 
-import pandas as pd
+import modin.pandas as pd
 
 from dataset.cleaner_helper import description_cleaner
 from dataset.pair_training_dataset import TrainingProductPairDataset

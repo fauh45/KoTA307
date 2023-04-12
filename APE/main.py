@@ -2,6 +2,7 @@ import argparse
 import torch
 import sys
 import traceback
+import ray
 
 from models.ELMo_pair_model import ELMoPairModel
 from models.BERT_pair_model import BERTPairModel
@@ -78,4 +79,5 @@ def start_experiment():
 
 
 if __name__ == "__main__":
+    ray.init(log_to_driver=False)
     start_experiment()

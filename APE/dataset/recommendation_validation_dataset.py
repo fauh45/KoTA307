@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset
 
-import pandas as pd
+import modin.pandas as pd
 
 
 class RecommendationValidationDataset(Dataset):
@@ -30,7 +30,9 @@ class RecommendationValidationDataset(Dataset):
             # p3 -> (p1, p2)
             for i in range(len(email_grouped_reset_index)):
                 val_input = email_grouped_reset_index.loc[i]
-                val_ground_truth = email_grouped_reset_index.drop(i).reset_index(drop=True)
+                val_ground_truth = email_grouped_reset_index.drop(
+                    i
+                ).reset_index(drop=True)
 
                 validation_dataset_permuted.append(
                     [val_input, val_ground_truth]

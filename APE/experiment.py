@@ -6,6 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 from sklearn.metrics.pairwise import cosine_distances
 from scipy.stats import pearsonr
+from tqdm import tqdm
 
 import os
 import torch
@@ -87,13 +88,9 @@ class Experiment:
         return self.models[self.current_models_index]
 
     def __create_embeddings(self, description: str):
-        if self.validate_only:
-            # Faster Testing
-            return [[1, 2, 3]]
-        return self.__get_current_model().run_to_model_once(description)
-
-    def __compare_embeddings(self, emb1, emb2):
-        return cosine_distances(emb1, emb2)
+        return (
+            self.__get_current_model().run_to_model_once(description).numpy()
+        )
 
     def __move_model_index_forward(self):
         self.current_models_index += 1
@@ -129,6 +126,7 @@ class Experiment:
 
     def validate(self, dataset: RecommendationValidationDataset):
         current_model = self.__get_current_model()
+
         current_model.eval()
         current_model.model_eval()
 
@@ -136,25 +134,30 @@ class Experiment:
 
         all_unique_item = self.__k_fold_dataset.unique_items
 
-        all_unique_item["embeddings"] = all_unique_item[
-            "Product description"
-        ].apply(self.__create_embeddings)
-
-        def get_embeddings(sku: str):
-            return all_unique_item.at[sku, "embeddings"]
-
-        validation_data = DataLoader(
-            dataset, batch_size=hparams[1], collate_fn=lambda x: x
-        )
-
         with torch.no_grad():
+            # * Done because modin cannot pickle "__create_embeddings"
+            all_unique_item["embeddings"] = [
+                self.__create_embeddings(desc)
+                for desc in tqdm(
+                    all_unique_item["Product description"].values,
+                    "Generating embeddings for all unique items",
+                )
+            ]
+
+            def get_embeddings(sku: str):
+                return all_unique_item.at[sku, "embeddings"]
+
+            validation_data = DataLoader(
+                dataset, batch_size=hparams[1], collate_fn=lambda x: x
+            )
+
             corr = []
             precision = []
             recall = []
             f1_score = []
 
-            for batch in validation_data:
-                for seed, label in batch:
+            for batch in tqdm(validation_data, "Validating bath"):
+                for seed, label in tqdm(batch, "Validating each case in batch"):
                     seed_embeddings = get_embeddings(seed["Lineitem sku"])
 
                     embeddings_distance = (
@@ -162,7 +165,7 @@ class Experiment:
                             all_unique_item.index != seed["Lineitem sku"]
                         ]["embeddings"]
                         .apply(
-                            lambda emb2: self.__compare_embeddings(
+                            lambda emb2: cosine_distances(
                                 seed_embeddings, emb2
                             )
                         )

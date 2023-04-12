@@ -2,6 +2,7 @@ from datetime import datetime
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
+from tqdm import trange, tqdm
 
 import torch
 import torch.nn as nn
@@ -55,8 +56,8 @@ class ModelTraining:
 
         training_data = self.get_data_loader(self.dataset)
 
-        for batch_idx, ((descriptions_1, description_2), labels) in enumerate(
-            training_data
+        for batch_idx, ((descriptions_1, description_2), labels) in tqdm(
+            enumerate(training_data), desc="Training Batch"
         ):
             self.model_loss.zero_grad()
 
@@ -87,7 +88,7 @@ class ModelTraining:
         )
 
     def train(self):
-        for epoch in range(1, self.model_epoch + 1):
+        for epoch in trange(1, self.model_epoch + 1, desc="Epoch"):
             self.train_each_epoch(epoch)
 
             print(f"\n\nDone with epoch {epoch}\n\n")
