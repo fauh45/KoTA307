@@ -289,13 +289,22 @@ class Experiment:
 
     def run_experiment(self):
         for _ in range(len(self.models)):
+            print("\n\nRUNNING NEW MODEL")
+            print("CURRENT MODEL", self.__get_current_model().model_name)
+            print("\n\n")
+
             for _ in range(len(self.experiment_hparams)):
                 self.run_one_experiment()
 
+                print("\n\nMOVING EXPERIMENT FORWARD")
                 self.__move_experiment_index_forward()
+                print("CURRENT EXPERIMENT", self.__get_current_experiment())
+                print("\n\n")
+
                 self.__reset_current_model()
 
                 if self.dry_run:
+                    print("\n\nBREAKING AFTER ONE HPARAMS ON DRY RUN\n\n")
                     break
 
             self.__move_model_index_forward()
