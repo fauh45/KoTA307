@@ -37,7 +37,7 @@ class Experiment:
         save_dir: str = "",
         dry_run: bool = False,
         validate_only: bool = False,
-        gpu: bool = False
+        gpu: bool = False,
     ) -> None:
         self.__k_fold_dataset = KFoldDataset(
             dataset_path, min_product_bought, k_splits
@@ -90,6 +90,14 @@ class Experiment:
         return self.models[self.current_models_index]
 
     def __create_embeddings(self, description: str):
+        if self.gpu:
+            return (
+                self.__get_current_model()
+                .run_to_model_once(description)
+                .cpu()
+                .numpy()
+            )
+
         return (
             self.__get_current_model().run_to_model_once(description).numpy()
         )
@@ -122,7 +130,7 @@ class Experiment:
                 current_model.model_name
             ),
             dry_run=self.dry_run,
-            gpu=self.gpu
+            gpu=self.gpu,
         )
 
         training_model.train()
@@ -160,7 +168,9 @@ class Experiment:
             f1_score = []
 
             for batch in tqdm(validation_data, "Validating bath"):
-                for seed, label in tqdm(batch, "Validating each case in batch"):
+                for seed, label in tqdm(
+                    batch, "Validating each case in batch"
+                ):
                     seed_embeddings = get_embeddings(seed["Lineitem sku"])
 
                     embeddings_distance = (
