@@ -64,7 +64,7 @@ def start_experiment():
         )
         print(f"Device used: {device}")
 
-        elmo_model = ELMoPairModel(args.elmo_path)
+        elmo_model = ELMoPairModel(args.elmo_path, args.gpu)
         bert_model = BERTPairModel(args.bert_path, args.gpu)
 
         experiment = Experiment(
