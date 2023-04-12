@@ -244,6 +244,7 @@ class Experiment:
                     print(
                         "\n\nEXITING VALIDATION AFTER ONE BATCH ON DRY RUN\n\n"
                     )
+                    break
 
             print(
                 f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"

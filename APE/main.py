@@ -79,7 +79,7 @@ def start_experiment():
             dry_run=args.dry_run,
             validate_only=args.validate_only,
             save_dir="experiment_output",
-            gpu=args.gpu
+            gpu=args.gpu,
         )
 
         experiment.run_experiment()
