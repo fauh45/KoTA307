@@ -12,17 +12,23 @@ class BERTPairModel(PairEmbeddingModel):
         self.__tokenizer = AutoTokenizer.from_pretrained(pretrained_name)
         self.__model = AutoModel.from_pretrained(pretrained_name)
 
+        self.gpu = gpu
         if gpu:
             self.__model = self.__model.to("cuda")
 
     def __tokenize(self, sentence_input: str):
-        return self.__tokenizer(
+        tokenizer_result = self.__tokenizer(
             sentence_input,
             return_tensors="pt",
             padding=True,
             truncation=True,
             max_length=512,
         )
+
+        if self.gpu:
+            tokenizer_result = tokenizer_result.to("cuda")
+
+        return tokenizer_result
 
     def run_to_model_once(self, sentence_input: str):
         tokenized = self.__tokenize(sentence_input)
