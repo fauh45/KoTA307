@@ -33,14 +33,22 @@ def start_experiment():
         "--dry-run",
         action=argparse.BooleanOptionalAction,
         help="If the the experiment run is a dry run",
+        required=False,
+        default=False,
     )
     parser.add_argument(
         "--validate-only",
         action=argparse.BooleanOptionalAction,
         help="Only run the validation portion of the experiment",
+        required=False,
+        default=False,
     )
     parser.add_argument(
-        "--gpu", action=argparse.BooleanOptionalAction, help="Use GPU"
+        "--gpu",
+        action=argparse.BooleanOptionalAction,
+        help="Use GPU",
+        required=False,
+        default=False,
     )
 
     try:
