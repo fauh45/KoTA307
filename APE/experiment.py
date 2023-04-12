@@ -260,7 +260,11 @@ class Experiment:
     def run_one_experiment(self):
         summary_writer = self.__get_summary_writer()
 
-        for train_dataset, validate_dataset in self.__k_fold_dataset:
+        for k, (train_dataset, validate_dataset) in tqdm(
+            enumerate(self.__k_fold_dataset), desc="K Fold part"
+        ):
+            print("\n\nRUNNING K FOLD ", k, "\n\n")
+
             if not self.validate_only:
                 self.train(train_dataset)
 
@@ -273,6 +277,7 @@ class Experiment:
 
             summary_writer.add_hparams(
                 {
+                    "k": k,
                     "model": model_name,
                     "epoch": hparams[0],
                     "batch_size": hparams[1],
