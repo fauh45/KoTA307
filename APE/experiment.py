@@ -37,6 +37,7 @@ class Experiment:
         save_dir: str = "",
         dry_run: bool = False,
         validate_only: bool = False,
+        gpu: bool = False
     ) -> None:
         self.__k_fold_dataset = KFoldDataset(
             dataset_path, min_product_bought, k_splits
@@ -63,6 +64,7 @@ class Experiment:
 
         self.dry_run = dry_run
         self.validate_only = validate_only
+        self.gpu = gpu
 
     def __get_summary_comment(self):
         current_experiment = self.__get_current_experiment()
@@ -120,6 +122,7 @@ class Experiment:
                 current_model.model_name
             ),
             dry_run=self.dry_run,
+            gpu=self.gpu
         )
 
         training_model.train()

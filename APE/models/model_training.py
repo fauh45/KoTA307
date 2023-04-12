@@ -36,6 +36,7 @@ class ModelTraining:
         self.model_loss = model_loss
         self.summary_writer = summary_writer
         self.dry_run = dry_run
+        self.gpu = gpu
 
         now = datetime.now()
         self.model_save_path = f"{model_save_path}/pair_embedding_{model.model_name}_{model_epoch}_{model_loss}_{model_lr}_{now.year}_{now.month}_{now.day}_{now.hour}.pt"
@@ -65,7 +66,7 @@ class ModelTraining:
             model_outputs = self.model(descriptions_1, description_2)
 
             temp_label = labels
-            if gpu:
+            if self.gpu:
                 temp_label = torch.tensor(labels).to("cuda")
 
             loss = self.model_loss(*model_outputs, temp_label)
