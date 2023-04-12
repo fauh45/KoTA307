@@ -8,10 +8,11 @@ import string
 
 
 class PairEmbeddingModel(nn.Module):
-    def __init__(self, model_name: str) -> None:
+    def __init__(self, model_name: str, gpu: bool) -> None:
         super().__init__()
 
         self.model_name = model_name
+        self.gpu = gpu
 
     def run_to_model_once(self, sentence_input: str):
         return NotImplementedError("Please implement run_to_model_once method")

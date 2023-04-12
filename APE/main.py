@@ -39,6 +39,9 @@ def start_experiment():
         action=argparse.BooleanOptionalAction,
         help="Only run the validation portion of the experiment",
     )
+    parser.add_argument(
+        "--gpu", action=argparse.BooleanOptionalAction, help="Use GPU"
+    )
 
     try:
         args = parser.parse_args()
@@ -54,7 +57,7 @@ def start_experiment():
         print(f"Device used: {device}")
 
         elmo_model = ELMoPairModel(args.elmo_path)
-        bert_model = BERTPairModel(args.bert_path)
+        bert_model = BERTPairModel(args.bert_path, args.gpu)
 
         experiment = Experiment(
             models=[bert_model, elmo_model],

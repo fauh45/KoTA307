@@ -4,13 +4,16 @@ from models.pair_embedding import PairEmbeddingModel
 
 
 class BERTPairModel(PairEmbeddingModel):
-    def __init__(self, pretrained_name: str) -> None:
+    def __init__(self, pretrained_name: str, gpu: bool) -> None:
         super().__init__("BERT")
 
         self.__pretrained_name = pretrained_name
 
         self.__tokenizer = AutoTokenizer.from_pretrained(pretrained_name)
         self.__model = AutoModel.from_pretrained(pretrained_name)
+
+        if gpu:
+            self.__model = self.__model.to("cuda")
 
     def __tokenize(self, sentence_input: str):
         return self.__tokenizer(
