@@ -1,5 +1,5 @@
 from elmoformanylangs import Embedder
-import torch
+from torch.autograd import Variable
 import numpy as np
 
 from models.pair_embedding import PairEmbeddingModel
@@ -24,9 +24,12 @@ class ELMoPairModel(PairEmbeddingModel):
     def run_to_model_once(self, sentence_input: str):
         # TODO: Not really sure about this one, is it really updating the weights of the ELMo model?
         # Updated the sents2elmo using tensor instead, but still need to make sure
-        tensored = self.__embedder.sents2elmo(
-            self.__split_description(sentence_input)
-        )[0]
+        tensored = Variable(
+            self.__embedder.sents2elmo(
+                self.__split_description(sentence_input)
+            )[0],
+            requires_grad=True,
+        )
 
         if self.gpu:
             tensored = tensored.to("cuda")

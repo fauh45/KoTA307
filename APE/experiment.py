@@ -182,7 +182,7 @@ class Experiment:
                                 seed_embeddings, emb2
                             )
                         )
-                        .sort_values(ascending=False)
+                        .sort_values(ascending=True)
                         .head(len(label))
                     )
 
