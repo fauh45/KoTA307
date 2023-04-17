@@ -1,4 +1,4 @@
-from itertools import permutations
+from itertools import combinations
 import modin.pandas as pd
 from torch.utils.data import Dataset
 
@@ -25,7 +25,7 @@ class TrainingProductPairDataset(Dataset):
 
         training_dataset_permuted = []
         for _, group in grouped_training:
-            for b, g in permutations(group["Product description"].tolist(), 2):
+            for b, g in combinations(group["Product description"].tolist(), 2):
                 # label are set to 1 on description that are not the same, because of cross selling
                 # to denote that the data are positive pair (a user bought two of it)
                 training_dataset_permuted.append([b, g, 1 if b != g else -1])
