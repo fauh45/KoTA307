@@ -30,6 +30,13 @@ def start_experiment():
         help="Path of cleaned csv file",
     )
     parser.add_argument(
+        "--start-experiment-on",
+        type=int,
+        required=False,
+        default=0,
+        help="Start of the experiment on index"
+    )
+    parser.add_argument(
         "--dry-run",
         action=argparse.BooleanOptionalAction,
         help="If the the experiment run is a dry run",
@@ -80,6 +87,7 @@ def start_experiment():
             validate_only=args.validate_only,
             save_dir="experiment_output",
             gpu=args.gpu,
+            start_experiment_on=args.start_experiment_on
         )
 
         experiment.run_experiment()

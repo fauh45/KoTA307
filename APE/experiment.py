@@ -66,19 +66,19 @@ class Experiment:
         self.validate_only = validate_only
         self.gpu = gpu
 
-    def __get_summary_comment(self):
+    def __get_summary_comment(self, k: int):
         current_experiment = self.__get_current_experiment()
 
-        return f"EPOCH_{current_experiment[0]}_BATCH_SIZE_{current_experiment[1]}_LR_{current_experiment[2]}"
+        return f"EPOCH_{current_experiment[0]}_BATCH_SIZE_{current_experiment[1]}_LR_{current_experiment[2]}_K_{k}"
 
-    def __get_summary_writer(self):
-        return SummaryWriter(log_dir=self.__get_summary_save_path())
+    def __get_summary_writer(self, k: int):
+        return SummaryWriter(log_dir=self.__get_summary_save_path(k))
 
-    def __get_summary_save_path(self):
-        return f"{self.save_dir}/{self.__get_summary_comment()}"
+    def __get_summary_save_path(self, k: int):
+        return f"{self.save_dir}/{self.__get_summary_comment(k)}"
 
-    def __get_model_save_dir(self, model_name: str):
-        return f"{self.__get_summary_save_path()}/{model_name}_Save"
+    def __get_model_save_dir(self, model_name: str, k: int):
+        return f"{self.__get_summary_save_path(k)}/{model_name}_Save"
 
     def __get_current_experiment(self):
         return self.experiment_hparams[self.current_experiment_index]
@@ -111,7 +111,7 @@ class Experiment:
     def __move_experiment_index_forward(self):
         self.current_experiment_index += 1
 
-    def train(self, dataset: TrainingProductPairDataset):
+    def train(self, dataset: TrainingProductPairDataset, k: int):
         current_model = self.__get_current_model()
         hparams = self.__get_current_experiment()
 
@@ -125,7 +125,7 @@ class Experiment:
             dataset_batch_size=hparams[1],
             model_lr=hparams[2],
             dataset=dataset,
-            summary_writer=self.__get_summary_writer(),
+            summary_writer=self.__get_summary_writer(k),
             model_save_path=self.__get_model_save_dir(
                 current_model.model_name
             ),
@@ -258,11 +258,11 @@ class Experiment:
             )
 
     def run_one_experiment(self):
-        summary_writer = self.__get_summary_writer()
-
         for k, (train_dataset, validate_dataset) in tqdm(
             enumerate(self.__k_fold_dataset), desc="K Fold part"
         ):
+            summary_writer = self.__get_summary_writer(k)
+
             print("\n\nRUNNING K FOLD ", k, "\n\n")
 
             if not self.validate_only:
@@ -289,7 +289,6 @@ class Experiment:
                     "hparam/avg_recall": avg_recall,
                     "hparam/avg_f1": avg_f1,
                 },
-                run_name=os.path.dirname(self.__get_summary_save_path()),
             )
 
     def run_experiment(self):
@@ -312,4 +311,12 @@ class Experiment:
                     print("\n\nBREAKING AFTER ONE HPARAMS ON DRY RUN\n\n")
                     break
 
+                if self.current_experiment_index > len(
+                    self.experiment_hparams
+                ):
+                    break
+
             self.__move_model_index_forward()
+
+            if self.current_models_index > len(self.models):
+                break
