@@ -127,7 +127,7 @@ class Experiment:
             dataset=dataset,
             summary_writer=self.__get_summary_writer(k),
             model_save_path=self.__get_model_save_dir(
-                current_model.model_name
+                current_model.model_name, k
             ),
             dry_run=self.dry_run,
             gpu=self.gpu,
@@ -266,7 +266,7 @@ class Experiment:
             print("\n\nRUNNING K FOLD ", k, "\n\n")
 
             if not self.validate_only:
-                self.train(train_dataset)
+                self.train(train_dataset, k)
 
             avg_corr, avg_precision, avg_recall, avg_f1 = self.validate(
                 validate_dataset
