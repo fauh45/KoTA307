@@ -11,6 +11,7 @@ from tqdm import tqdm
 import os
 import torch
 import numpy as np
+import wandb
 
 from dataset.k_fold_dataset import KFoldDataset
 from dataset.pair_training_dataset import TrainingProductPairDataset
@@ -65,6 +66,11 @@ class Experiment:
         self.dry_run = dry_run
         self.validate_only = validate_only
         self.gpu = gpu
+
+        wandb.init(
+            project="APE-KoTa307",
+            config={"dry_run": self.dry_run, "gpu": self.gpu},
+        )
 
     def __get_summary_comment(self, k: int):
         current_experiment = self.__get_current_experiment()
@@ -240,6 +246,15 @@ class Experiment:
                 print("Avg F1 Score", np.average(f1_score))
                 print("\n")
 
+                wandb.log(
+                    {
+                        "avg/corr": np.average(corr),
+                        "avg/precision": np.average(precision),
+                        "avg/recall": np.average(recall),
+                        "avg/f1": np.average(f1_score),
+                    }
+                )
+
                 if self.dry_run:
                     print(
                         "\n\nEXITING VALIDATION AFTER ONE BATCH ON DRY RUN\n\n"
@@ -259,7 +274,9 @@ class Experiment:
 
     def run_one_experiment(self):
         for k, (train_dataset, validate_dataset) in tqdm(
-            enumerate(self.__k_fold_dataset), desc="K Fold part"
+            enumerate(self.__k_fold_dataset),
+            desc="K Fold part",
+            total=len(self.__k_fold_dataset),
         ):
             summary_writer = self.__get_summary_writer(k)
 

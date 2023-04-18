@@ -6,6 +6,7 @@ from tqdm import trange, tqdm
 
 import torch
 import torch.nn as nn
+import wandb
 
 from dataset.pair_training_dataset import TrainingProductPairDataset
 from models.pair_embedding import PairEmbeddingModel
@@ -44,6 +45,12 @@ class ModelTraining:
 
         torch.manual_seed(random_seed)
 
+        wandb.config = {
+            "epochs": self.model_epoch,
+            "learning_rate": self.model_lr,
+            "batch_size": self.dataset_batch_size,
+        }
+
     def load_model(self, path: str):
         self.model = torch.load(path)
 
@@ -59,8 +66,11 @@ class ModelTraining:
         training_data = self.get_data_loader(self.dataset)
 
         for batch_idx, ((descriptions_1, description_2), labels) in tqdm(
-            enumerate(training_data), desc="Training Batch"
+            enumerate(training_data),
+            desc="Training Batch",
+            total=len(training_data),
         ):
+            # ? Might be a problem? Removing gradient on the loss function every batch?
             self.model_loss.zero_grad()
 
             model_outputs = self.model(descriptions_1, description_2)
@@ -93,6 +103,7 @@ class ModelTraining:
         self.summary_writer.add_scalar(
             "Loss/Train", loss.item(), global_step=epoch
         )
+        wandb.log({"loss": loss.item()})
 
     def train(self):
         with torch.enable_grad():
@@ -103,3 +114,4 @@ class ModelTraining:
 
         if self.model_save:
             torch.save(self.model.state_dict(), self.model_save_path)
+            wandb.log_artifact(self.model)
