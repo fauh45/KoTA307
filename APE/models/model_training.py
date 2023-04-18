@@ -39,6 +39,10 @@ class ModelTraining:
         self.dry_run = dry_run
         self.gpu = gpu
 
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=self.model_lr
+        )
+
         now = datetime.now()
         self.model_save_path = f"{model_save_path}/pair_embedding_{model.model_name}_{model_epoch}_{model_loss}_{model_lr}_{now.year}_{now.month}_{now.day}_{now.hour}.pt"
         Path(model_save_path).mkdir(parents=True, exist_ok=True)
@@ -64,8 +68,7 @@ class ModelTraining:
             desc="Training Batch",
             total=len(training_data),
         ):
-            # ? Might be a problem? Removing gradient on the loss function every batch?
-            self.model_loss.zero_grad()
+            self.optimizer.zero_grad()
 
             model_outputs = self.model(descriptions_1, description_2)
 
@@ -76,10 +79,11 @@ class ModelTraining:
             loss = self.model_loss(*model_outputs, temp_label)
             loss.backward()
 
+            self.optimizer.step()
+
             if batch_idx % 100 == 0:
                 print(f"\n\nLogging at {batch_idx}")
 
-                # Should we use optimizer Adam, Ada, etc here?
                 print(
                     "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\n\n".format(
                         epoch,
