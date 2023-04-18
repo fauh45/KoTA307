@@ -63,6 +63,8 @@ class ModelTraining:
 
         training_data = self.get_data_loader(self.dataset)
 
+        running_loss = 0.0
+
         for batch_idx, ((descriptions_1, description_2), labels) in tqdm(
             enumerate(training_data),
             desc="Training Batch",
@@ -79,20 +81,26 @@ class ModelTraining:
             loss = self.model_loss(*model_outputs, temp_label)
             loss.backward()
 
+            running_loss += loss.item()
+
             self.optimizer.step()
 
             if batch_idx % 100 == 0:
                 print(f"\n\nLogging at {batch_idx}")
 
                 print(
-                    "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\n\n".format(
+                    "Train Epoch: {} [{}/{} ({:.0f}%)]\tRunning Loss: {:.6f}\n\n".format(
                         epoch,
                         batch_idx * len(descriptions_1),
                         len(training_data.dataset),
                         100.0 * batch_idx / len(training_data),
-                        loss.item(),
+                        running_loss / 101,
                     )
                 )
+
+                wandb.log({"train/running-loss": running_loss / 101})
+
+                running_loss = 0.0
 
                 if self.dry_run:
                     print("\n\nDRY RUN, BREAKING AFTER 100 BATCH SIZE\n\n")
