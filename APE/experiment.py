@@ -67,11 +67,6 @@ class Experiment:
         self.validate_only = validate_only
         self.gpu = gpu
 
-        wandb.init(
-            project="APE-KoTa307",
-            config={"dry_run": self.dry_run, "gpu": self.gpu},
-        )
-
     def __get_summary_comment(self, k: int):
         current_experiment = self.__get_current_experiment()
 
@@ -248,10 +243,10 @@ class Experiment:
 
                 wandb.log(
                     {
-                        "avg/corr": np.average(corr),
-                        "avg/precision": np.average(precision),
-                        "avg/recall": np.average(recall),
-                        "avg/f1": np.average(f1_score),
+                        "validate/corr": np.average(corr),
+                        "validate/precision": np.average(precision),
+                        "validate/recall": np.average(recall),
+                        "validate/f1": np.average(f1_score),
                     }
                 )
 
@@ -278,6 +273,22 @@ class Experiment:
             desc="K Fold part",
             total=len(self.__k_fold_dataset),
         ):
+            hparams = self.__get_current_experiment()
+            model_name = self.__get_current_model().model_name
+
+            wandb.init(
+                project="APE-KoTa307",
+                config={
+                    "dry_run": self.dry_run,
+                    "gpu": self.gpu,
+                    "k": k,
+                    "model": model_name,
+                    "epoch": hparams[0],
+                    "batch_size": hparams[1],
+                    "lr": hparams[2],
+                },
+                reinit=True,
+            )
             summary_writer = self.__get_summary_writer(k)
 
             print("\n\nRUNNING K FOLD ", k, "\n\n")
@@ -288,9 +299,6 @@ class Experiment:
             avg_corr, avg_precision, avg_recall, avg_f1 = self.validate(
                 validate_dataset
             )
-
-            hparams = self.__get_current_experiment()
-            model_name = self.__get_current_model().model_name
 
             summary_writer.add_hparams(
                 {

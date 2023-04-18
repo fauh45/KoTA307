@@ -45,12 +45,6 @@ class ModelTraining:
 
         torch.manual_seed(random_seed)
 
-        wandb.config = {
-            "epochs": self.model_epoch,
-            "learning_rate": self.model_lr,
-            "batch_size": self.dataset_batch_size,
-        }
-
     def load_model(self, path: str):
         self.model = torch.load(path)
 
@@ -103,7 +97,7 @@ class ModelTraining:
         self.summary_writer.add_scalar(
             "Loss/Train", loss.item(), global_step=epoch
         )
-        wandb.log({"loss": loss.item()})
+        wandb.log({"train/loss": loss.item()})
 
     def train(self):
         with torch.enable_grad():
