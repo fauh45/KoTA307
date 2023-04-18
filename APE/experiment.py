@@ -132,6 +132,7 @@ class Experiment:
             ),
             dry_run=self.dry_run,
             gpu=self.gpu,
+            model_save=False
         )
 
         training_model.train()
