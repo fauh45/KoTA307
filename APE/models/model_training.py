@@ -114,4 +114,3 @@ class ModelTraining:
 
         if self.model_save:
             torch.save(self.model.state_dict(), self.model_save_path)
-            wandb.log_artifact(self.model)
