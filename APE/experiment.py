@@ -288,6 +288,8 @@ class Experiment:
                     "lr": hparams[2],
                 },
                 reinit=True,
+                name=self.__get_summary_comment(k)
+                + f"_TIME_{datetime.now().isoformat()}",
             )
             summary_writer = self.__get_summary_writer(k)
 
