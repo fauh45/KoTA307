@@ -25,10 +25,16 @@ class TrainingProductPairDataset(Dataset):
 
         training_dataset_permuted = []
         for _, group in grouped_training:
-            for b, g in combinations(group["Product description"].tolist(), 2):
-                # label are set to 1 on description that are not the same, because of cross selling
-                # to denote that the data are positive pair (a user bought two of it)
-                training_dataset_permuted.append([b, g, 1 if b != g else -1])
+            descriptions = group["Product description"]
+            for i in range(0, len(descriptions) - 1):
+                training_dataset_permuted.append(
+                    [descriptions[i], descriptions[i + 1], 1]
+                )
+
+            # for i in range(len(descriptions) - 1, 0, -1):
+            #     training_dataset_permuted.append(
+            #         [descriptions[i], descriptions[i - 1], -1]
+            #     )
 
         return pd.DataFrame(
             training_dataset_permuted,
