@@ -1,5 +1,5 @@
 from itertools import combinations
-import modin.pandas as pd
+import pandas as pd
 from torch.utils.data import Dataset
 
 
@@ -25,7 +25,7 @@ class TrainingProductPairDataset(Dataset):
 
         training_dataset_permuted = []
         for _, group in grouped_training:
-            descriptions = group["Product description"]
+            descriptions = group["Product description"].tolist()
             for i in range(0, len(descriptions) - 1):
                 training_dataset_permuted.append(
                     [descriptions[i], descriptions[i + 1], 1]

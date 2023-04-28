@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset
 
-import modin.pandas as pd
+import pandas as pd
 
 
 class RecommendationValidationDataset(Dataset):
