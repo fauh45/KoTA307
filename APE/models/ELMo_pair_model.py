@@ -43,5 +43,9 @@ class ELMoPairModel(PairEmbeddingModel):
         self.__model.train()
 
     def model_reset(self):
+        del self.__embedder
+
+        self.clean_cache(self.gpu)
+
         self.__embedder = Embedder(self.__pretrained_model_dir)
         self.__model = self.__embedder.model

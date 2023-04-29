@@ -43,6 +43,11 @@ class BERTPairModel(PairEmbeddingModel):
         self.__model.train()
 
     def model_reset(self):
+        del self.__tokenizer
+        del self.__model
+
+        self.clean_cache(self.gpu)
+
         self.__tokenizer = AutoTokenizer.from_pretrained(
             self.__pretrained_name
         )
