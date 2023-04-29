@@ -47,3 +47,6 @@ class BERTPairModel(PairEmbeddingModel):
             self.__pretrained_name
         )
         self.__model = AutoModel.from_pretrained(self.__pretrained_name)
+
+        if self.gpu:
+            self.__model = self.__model.to("cuda")
