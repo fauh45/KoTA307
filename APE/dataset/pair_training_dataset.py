@@ -31,10 +31,10 @@ class TrainingProductPairDataset(Dataset):
                     [descriptions[i], descriptions[i + 1], 1]
                 )
 
-            # for i in range(len(descriptions) - 1, 0, -1):
-            #     training_dataset_permuted.append(
-            #         [descriptions[i], descriptions[i - 1], -1]
-            #     )
+            for i in range(len(descriptions) - 1, 0, -1):
+                training_dataset_permuted.append(
+                    [descriptions[i], descriptions[i - 1], -1]
+                )
 
         return pd.DataFrame(
             training_dataset_permuted,
