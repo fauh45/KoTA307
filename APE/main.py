@@ -81,7 +81,7 @@ def start_experiment():
             min_product_bought=3,
             epoch={5, 10, 15},
             batch_size={8, 16, 32},
-            learning_rate={1e-5, 3e-5, 5e-5},
+            learning_rate={2e-5, 3e-5, 5e-5},
             dry_run=args.dry_run,
             validate_only=args.validate_only,
             save_dir="experiment_output",
