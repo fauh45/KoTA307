@@ -44,7 +44,7 @@ distlib==0.3.6
 distributed==2023.3.2.1
 docker-pycreds==0.4.0
 docopt==0.6.2
-elmoformanylangs @ git+https://github.com/fauh45/ELMoForManyLangs.git@1ff1a1ee7773fa96d90906d1502ea292e1aeb8a0
+elmoformanylangs @ git+https://github.com/fauh45/ELMoForManyLangs.git@4da86c96e0360571ecd14cc3817c597f0f8d79b6
 executing==1.2.0
 fastapi==0.95.0
 fastjsonschema==2.16.3

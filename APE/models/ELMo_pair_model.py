@@ -24,15 +24,12 @@ class ELMoPairModel(PairEmbeddingModel):
     def run_to_model_once(self, sentence_input: str):
         # TODO: Not really sure about this one, is it really updating the weights of the ELMo model?
         # Updated the sents2elmo using tensor instead, but still need to make sure
-        tensored = Variable(
-            self.__embedder.sents2elmo(
-                self.__split_description(sentence_input)
-            )[0],
-            requires_grad=True,
-        )
+        tensored = self.__embedder.sents2elmo(
+            self.__split_description(sentence_input)
+        )[0]
 
-        if self.gpu:
-            tensored = tensored.to("cuda")
+        if not self.gpu:
+            tensored = tensored.cpu()
 
         return tensored
 
