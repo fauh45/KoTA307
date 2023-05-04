@@ -118,5 +118,7 @@ class ModelTraining:
 
                 print(f"\n\nDone with epoch {epoch}\n\n")
 
+                self.model.clean_cache(self.gpu)
+
         if self.model_save:
             torch.save(self.model.state_dict(), self.model_save_path)
