@@ -106,7 +106,8 @@ class ModelTraining:
                     print("\n\nDRY RUN, BREAKING AFTER 100 BATCH SIZE\n\n")
                     break
 
-            self.model.clean_cache(self.gpu)
+            if self.dataset_batch_size > 8:
+                self.model.clean_cache(self.gpu)
 
         self.summary_writer.add_scalar(
             "Loss/Train", loss.item(), global_step=epoch
