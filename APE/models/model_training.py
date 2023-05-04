@@ -106,8 +106,8 @@ class ModelTraining:
                     print("\n\nDRY RUN, BREAKING AFTER 100 BATCH SIZE\n\n")
                     break
 
-            if self.dataset_batch_size > 8:
-                self.model.clean_cache(self.gpu)
+            if batch_idx % 50 and self.gpu and self.dataset_batch_size > 8:
+                torch.cuda.memory.empty_cache()
 
         self.summary_writer.add_scalar(
             "Loss/Train", loss.item(), global_step=epoch
