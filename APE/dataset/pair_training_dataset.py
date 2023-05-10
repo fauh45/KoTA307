@@ -19,6 +19,9 @@ class TrainingProductPairDataset(Dataset):
         # [data, label]
         return [row[:2], row[2]]
 
+    def save(self, filename: str = "training.csv"):
+        self.dataset.to_csv(filename)
+
     @staticmethod
     def permute_dataset(cleaned_data: pd.DataFrame) -> pd.DataFrame:
         grouped_training = cleaned_data.groupby("Email")

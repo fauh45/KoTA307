@@ -154,6 +154,8 @@ class Experiment:
                 )
             ]
 
+            wandb.log({"unique_items": all_unique_item})
+
             def get_embeddings(sku: str):
                 return all_unique_item.at[sku, "embeddings"]
 
@@ -188,6 +190,14 @@ class Experiment:
                     selected_items = all_unique_item[
                         all_unique_item.index.isin(embeddings_distance.index)
                     ]
+
+                    wandb.log(
+                        {
+                            "seed": seed,
+                            "label": label,
+                            "selected": selected_items,
+                        }
+                    )
 
                     n_recommended = len(label)
                     n_relevant_and_recommended = len(
