@@ -1,0 +1,57 @@
+wandb_version: 1
+
+dry_run:
+  desc: null
+  value: true
+gpu:
+  desc: null
+  value: false
+k:
+  desc: null
+  value: 0
+model:
+  desc: null
+  value: ELMo
+epoch:
+  desc: null
+  value: 5
+batch_size:
+  desc: null
+  value: 8
+lr:
+  desc: null
+  value: 2.0e-05
+_wandb:
+  desc: null
+  value:
+    python_version: 3.9.13
+    cli_version: 0.14.2
+    framework: huggingface
+    huggingface_version: 4.26.1
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1683730305.039364
+    t:
+      1:
+      - 1
+      - 5
+      - 11
+      - 49
+      - 53
+      - 55
+      2:
+      - 1
+      - 5
+      - 11
+      - 49
+      - 53
+      - 55
+      3:
+      - 13
+      - 16
+      - 23
+      4: 3.9.13
+      5: 0.14.2
+      6: 4.26.1
+      8:
+      - 5

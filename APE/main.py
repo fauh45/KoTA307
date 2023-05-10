@@ -74,7 +74,7 @@ def start_experiment():
         bert_model = BERTPairModel(args.bert_path, args.gpu)
 
         experiment = Experiment(
-            models=[bert_model, elmo_model],
+            models=[elmo_model],
             dataset_path=args.dataset_path,
             train_val_split=0.8,
             recommendation_amount=3,

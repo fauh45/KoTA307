@@ -1,0 +1,78 @@
+{
+    "os": "Linux-5.15.0-71-generic-x86_64-with-glibc2.31",
+    "python": "3.9.13",
+    "heartbeatAt": "2023-05-10T14:51:46.312440",
+    "startedAt": "2023-05-10T14:51:45.030781",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--elmo-path",
+        "pretrained_model/ELMo",
+        "--bert-path",
+        "indolem/indobert-base-uncased",
+        "--dataset-path",
+        "pretrained_model/cleaned_main_dataset.csv",
+        "--dry-run",
+        "--start-experiment-on",
+        "9",
+        "--validate-only"
+    ],
+    "state": "running",
+    "program": "/home/fauh45/Code/KoTA307/APE/main.py",
+    "codePath": "APE/main.py",
+    "git": {
+        "remote": "git@github.com:fauh45/KoTA307.git",
+        "commit": "ccf130aa90299e669877ebd99ef60d1544f58ac5"
+    },
+    "email": "fauzanfauh45@gmail.com",
+    "root": "/home/fauh45/Code/KoTA307",
+    "host": "InstrumentalXI",
+    "username": "fauh45",
+    "executable": "/home/fauh45/Code/KoTA307/APE/env/bin/python",
+    "cpu_count": 6,
+    "cpu_count_logical": 6,
+    "cpu_freq": {
+        "current": 1672.421,
+        "min": 1400.0,
+        "max": 2375.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1700.0,
+            "min": 1400.0,
+            "max": 2375.0
+        },
+        {
+            "current": 1317.457,
+            "min": 1400.0,
+            "max": 2375.0
+        },
+        {
+            "current": 1700.0,
+            "min": 1400.0,
+            "max": 2375.0
+        },
+        {
+            "current": 2372.36,
+            "min": 1400.0,
+            "max": 2375.0
+        },
+        {
+            "current": 1557.628,
+            "min": 1400.0,
+            "max": 2375.0
+        },
+        {
+            "current": 1657.189,
+            "min": 1400.0,
+            "max": 2375.0
+        }
+    ],
+    "disk": {
+        "total": 464.3673400878906,
+        "used": 210.4285774230957
+    },
+    "memory": {
+        "total": 11.059520721435547
+    }
+}

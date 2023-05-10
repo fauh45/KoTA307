@@ -88,6 +88,9 @@ class Experiment:
         return self.models[self.current_models_index]
 
     def __create_embeddings(self, description: str):
+        if self.dry_run:
+            return torch.rand(1, 32).numpy()
+
         if self.gpu:
             return (
                 self.__get_current_model()
@@ -154,7 +157,12 @@ class Experiment:
                 )
             ]
 
-            wandb.log({"unique_items": all_unique_item})
+            temp_unique_item = all_unique_item.reset_index()
+            temp_unique_item["embeddings"] = temp_unique_item[
+                "embeddings"
+            ].apply(lambda x: x[0])
+
+            wandb.log({"unique_items": temp_unique_item})
 
             def get_embeddings(sku: str):
                 return all_unique_item.at[sku, "embeddings"]
@@ -193,9 +201,18 @@ class Experiment:
 
                     wandb.log(
                         {
-                            "seed": seed,
-                            "label": label,
-                            "selected": selected_items,
+                            "validate_result": wandb.Table(
+                                columns=["seed", "label", "selected"],
+                                data=[
+                                    [
+                                        seed.to_json(orient="records"),
+                                        label.to_json(orient="records"),
+                                        selected_items.to_json(
+                                            orient="records"
+                                        ),
+                                    ]
+                                ],
+                            )
                         }
                     )
 
