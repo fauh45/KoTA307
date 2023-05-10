@@ -20,8 +20,8 @@ class RecommendationValidationDataset(Dataset):
         buffer = "label;ground_truth\n"
 
         for row in self.dataset:
-            row_buffer = row[0]["description"] + ";"
-            row_buffer = row[1]["description"].array.join(",") + "\n"
+            row_buffer = row[0]["Product description"] + ";"
+            row_buffer = row[1]["Product description"].array.join(",") + "\n"
 
             buffer += row_buffer
 
