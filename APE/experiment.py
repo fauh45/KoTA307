@@ -300,6 +300,9 @@ class Experiment:
                 + self.__get_summary_comment(k)
                 + f"_TIME_{datetime.now().isoformat()}",
             )
+            # wandb.log_artifact("training.csv")
+            # wandb.log_artifact("validation.csv")
+
             summary_writer = self.__get_summary_writer(k)
 
             print("\n\nRUNNING K FOLD ", k, "\n\n")

@@ -1,7 +1,6 @@
 from sklearn.model_selection import KFold
 
 import pandas as pd
-import wandb
 
 from dataset.cleaner_helper import description_cleaner
 from dataset.pair_training_dataset import TrainingProductPairDataset
@@ -70,11 +69,8 @@ class SimpleSplitDataset:
                 ]
             )
 
-            train_dataset.save("training.csv")
-            validation_dataset.save("validation.csv")
-
-            wandb.log_artifact("training.csv")
-            wandb.log_artifact("validation.csv")
+            # train_dataset.save("training.csv")
+            # validation_dataset.save("validation.csv") 
 
             self.current_index += 1
 

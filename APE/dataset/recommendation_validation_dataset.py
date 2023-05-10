@@ -21,7 +21,14 @@ class RecommendationValidationDataset(Dataset):
 
         for row in self.dataset:
             row_buffer = row[0]["Product description"] + ";"
-            row_buffer = row[1]["Product description"].array.join(",") + "\n"
+            row_buffer += (
+                "["
+                + ",".join(
+                    f'"{desc}"'
+                    for desc in row[1]["Product description"].values
+                )
+                + "]\n"
+            )
 
             buffer += row_buffer
 
