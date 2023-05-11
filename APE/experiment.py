@@ -88,9 +88,6 @@ class Experiment:
         return self.models[self.current_models_index]
 
     def __create_embeddings(self, description: str):
-        if self.dry_run:
-            return torch.rand(1, 32).numpy()
-
         if self.gpu:
             return (
                 self.__get_current_model()
@@ -160,7 +157,7 @@ class Experiment:
             temp_unique_item = all_unique_item.reset_index()
             temp_unique_item["embeddings"] = temp_unique_item[
                 "embeddings"
-            ].apply(lambda x: x[0])
+            ].apply(lambda x: x[0].tolist())
 
             wandb.log({"unique_items": temp_unique_item})
 
@@ -175,6 +172,8 @@ class Experiment:
             precision = []
             recall = []
             f1_score = []
+
+            final_data = []
 
             for batch in tqdm(validation_data, "Validating bath"):
                 for seed, label in tqdm(
@@ -199,21 +198,12 @@ class Experiment:
                         all_unique_item.index.isin(embeddings_distance.index)
                     ]
 
-                    wandb.log(
-                        {
-                            "validate_result": wandb.Table(
-                                columns=["seed", "label", "selected"],
-                                data=[
-                                    [
-                                        seed.to_json(orient="records"),
-                                        label.to_json(orient="records"),
-                                        selected_items.to_json(
-                                            orient="records"
-                                        ),
-                                    ]
-                                ],
-                            )
-                        }
+                    final_data.append(
+                        [
+                            seed.to_json(orient="records"),
+                            label.to_json(orient="records"),
+                            selected_items.to_json(orient="records"),
+                        ]
                     )
 
                     n_recommended = len(label)
@@ -280,6 +270,15 @@ class Experiment:
                         "\n\nEXITING VALIDATION AFTER ONE BATCH ON DRY RUN\n\n"
                     )
                     break
+
+            wandb.log(
+                {
+                    "validate_result": wandb.Table(
+                        columns=["seed", "label", "selected"],
+                        data=final_data,
+                    )
+                }
+            )
 
             print(
                 f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
