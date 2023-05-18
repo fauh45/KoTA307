@@ -16,6 +16,7 @@ class SimpleSplitDataset:
         min_product_bought: int = 3,
         train_val_split: int = 0.8,
         random_state: int = 69,
+        save: bool = False
     ) -> None:
         df = pd.read_csv(csv_path)
         df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
@@ -41,42 +42,29 @@ class SimpleSplitDataset:
 
         self.unique_items = self.get_all_unique_items(self.complete_dataset)
 
-    def recreate_unique_from_index(self, list_of_index: list) -> list:
-        return [self.unique_buyer[i] for i in list_of_index]
+        self.save = save
 
-    def __len__(self):
-        return 1
+    def get_dataset(self):
+        train_dataset = TrainingProductPairDataset(
+            self.complete_dataset[
+                self.complete_dataset["Email"].isin(
+                    self.training_unique_buyer.index
+                )
+            ]
+        )
+        validation_dataset = RecommendationValidationDataset(
+            self.complete_dataset[
+                self.complete_dataset["Email"].isin(
+                    self.validation_unique_buyer.index
+                )
+            ]
+        )
 
-    def __iter__(self):
-        self.current_index = 0
+        if self.save:
+            train_dataset.save("training.csv")
+            validation_dataset.save("validation.csv")
 
-        return self
-
-    def __next__(self):
-        if self.current_index < 1:
-            train_dataset = TrainingProductPairDataset(
-                self.complete_dataset[
-                    self.complete_dataset["Email"].isin(
-                        self.training_unique_buyer.index
-                    )
-                ]
-            )
-            validation_dataset = RecommendationValidationDataset(
-                self.complete_dataset[
-                    self.complete_dataset["Email"].isin(
-                        self.validation_unique_buyer.index
-                    )
-                ]
-            )
-
-            # train_dataset.save("training.csv")
-            # validation_dataset.save("validation.csv") 
-
-            self.current_index += 1
-
-            return train_dataset, validation_dataset
-
-        raise StopIteration
+        return train_dataset, validation_dataset
 
     @staticmethod
     def get_all_unique_items(cleaned_data: pd.DataFrame) -> pd.DataFrame:

@@ -39,9 +39,13 @@ class Experiment:
         dry_run: bool = False,
         validate_only: bool = False,
         gpu: bool = False,
+        save_dataset: bool = False,
     ) -> None:
         self.__simple_split_dataset = SimpleSplitDataset(
-            dataset_path, min_product_bought, train_val_split
+            dataset_path,
+            min_product_bought,
+            train_val_split,
+            save=save_dataset,
         )
 
         self.recommendation_amount = recommendation_amount
@@ -67,19 +71,19 @@ class Experiment:
         self.validate_only = validate_only
         self.gpu = gpu
 
-    def __get_summary_comment(self, k: int):
+    def __get_summary_comment(self):
         current_experiment = self.__get_current_experiment()
 
-        return f"EPOCH_{current_experiment[0]}_BATCH_SIZE_{current_experiment[1]}_LR_{current_experiment[2]}_K_{k}"
+        return f"EPOCH_{current_experiment[0]}_BATCH_SIZE_{current_experiment[1]}_LR_{current_experiment[2]}"
 
-    def __get_summary_writer(self, k: int):
-        return SummaryWriter(log_dir=self.__get_summary_save_path(k))
+    def __get_summary_writer(self):
+        return SummaryWriter(log_dir=self.__get_summary_save_path())
 
-    def __get_summary_save_path(self, k: int):
-        return f"{self.save_dir}/{self.__get_summary_comment(k)}"
+    def __get_summary_save_path(self):
+        return f"{self.save_dir}/{self.__get_summary_comment()}"
 
-    def __get_model_save_dir(self, model_name: str, k: int):
-        return f"{self.__get_summary_save_path(k)}/{model_name}_Save"
+    def __get_model_save_dir(self, model_name: str):
+        return f"{self.__get_summary_save_path()}/{model_name}_Save"
 
     def __get_current_experiment(self):
         return self.experiment_hparams[self.current_experiment_index]
@@ -109,7 +113,7 @@ class Experiment:
     def __move_experiment_index_forward(self):
         self.current_experiment_index += 1
 
-    def train(self, dataset: TrainingProductPairDataset, k: int):
+    def train(self, dataset: TrainingProductPairDataset):
         current_model = self.__get_current_model()
         hparams = self.__get_current_experiment()
 
@@ -123,9 +127,9 @@ class Experiment:
             dataset_batch_size=hparams[1],
             model_lr=hparams[2],
             dataset=dataset,
-            summary_writer=self.__get_summary_writer(k),
+            summary_writer=self.__get_summary_writer(),
             model_save_path=self.__get_model_save_dir(
-                current_model.model_name, k
+                current_model.model_name
             ),
             dry_run=self.dry_run,
             gpu=self.gpu,
@@ -292,59 +296,53 @@ class Experiment:
             )
 
     def run_one_experiment(self):
-        for k, (train_dataset, validate_dataset) in tqdm(
-            enumerate(self.__simple_split_dataset),
-            desc="Train split part",
-            total=len(self.__simple_split_dataset),
-        ):
-            hparams = self.__get_current_experiment()
-            model_name = self.__get_current_model().model_name
+        (
+            train_dataset,
+            validate_dataset,
+        ) = self.__simple_split_dataset.get_dataset()
 
-            wandb.init(
-                project="APE-KoTa307",
-                config={
-                    "dry_run": self.dry_run,
-                    "gpu": self.gpu,
-                    "k": k,
-                    "model": model_name,
-                    "epoch": hparams[0],
-                    "batch_size": hparams[1],
-                    "lr": hparams[2],
-                },
-                reinit=True,
-                name=f"{'DRY_RUN' if self.dry_run else 'FULL'}_"
-                + self.__get_summary_comment(k)
-                + f"_TIME_{datetime.now().isoformat()}",
-            )
-            # wandb.log_artifact("training.csv")
-            # wandb.log_artifact("validation.csv")
+        hparams = self.__get_current_experiment()
+        model_name = self.__get_current_model().model_name
 
-            summary_writer = self.__get_summary_writer(k)
+        wandb.init(
+            project="APE-KoTa307",
+            config={
+                "dry_run": self.dry_run,
+                "gpu": self.gpu,
+                "model": model_name,
+                "epoch": hparams[0],
+                "batch_size": hparams[1],
+                "lr": hparams[2],
+            },
+            reinit=True,
+            name=f"{'DRY_RUN' if self.dry_run else 'FULL'}_"
+            + self.__get_summary_comment()
+            + f"_TIME_{datetime.now().isoformat()}",
+        )
 
-            print("\n\nRUNNING K FOLD ", k, "\n\n")
+        summary_writer = self.__get_summary_writer()
 
-            if not self.validate_only:
-                self.train(train_dataset, k)
+        if not self.validate_only:
+            self.train(train_dataset)
 
-            avg_corr, avg_precision, avg_recall, avg_f1 = self.validate(
-                validate_dataset
-            )
+        avg_corr, avg_precision, avg_recall, avg_f1 = self.validate(
+            validate_dataset
+        )
 
-            summary_writer.add_hparams(
-                {
-                    "k": k,
-                    "model": model_name,
-                    "epoch": hparams[0],
-                    "batch_size": hparams[1],
-                    "lr": hparams[2],
-                },
-                {
-                    "hparam/avg_corr": avg_corr,
-                    "hparam/avg_precision": avg_precision,
-                    "hparam/avg_recall": avg_recall,
-                    "hparam/avg_f1": avg_f1,
-                },
-            )
+        summary_writer.add_hparams(
+            {
+                "model": model_name,
+                "epoch": hparams[0],
+                "batch_size": hparams[1],
+                "lr": hparams[2],
+            },
+            {
+                "hparam/avg_corr": avg_corr,
+                "hparam/avg_precision": avg_precision,
+                "hparam/avg_recall": avg_recall,
+                "hparam/avg_f1": avg_f1,
+            },
+        )
 
     def run_experiment(self):
         for _ in range(len(self.models)):
