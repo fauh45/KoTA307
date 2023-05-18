@@ -2,7 +2,6 @@ import argparse
 import torch
 import sys
 import traceback
-import ray
 
 from models.ELMo_pair_model import ELMoPairModel
 from models.BERT_pair_model import BERTPairModel
@@ -77,12 +76,12 @@ def start_experiment():
         experiment = Experiment(
             models=[bert_model, elmo_model],
             dataset_path=args.dataset_path,
-            k_splits=10,
+            train_val_split=0.8,
             recommendation_amount=3,
             min_product_bought=3,
             epoch={5, 10, 15},
             batch_size={8, 16, 32},
-            learning_rate={1e-5, 3e-5, 5e-5},
+            learning_rate={2e-5, 3e-5, 5e-5},
             dry_run=args.dry_run,
             validate_only=args.validate_only,
             save_dir="experiment_output",
@@ -99,5 +98,4 @@ def start_experiment():
 
 
 if __name__ == "__main__":
-    ray.init(log_to_driver=False)
     start_experiment()

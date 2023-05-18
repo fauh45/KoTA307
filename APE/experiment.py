@@ -13,7 +13,7 @@ import torch
 import numpy as np
 import wandb
 
-from dataset.k_fold_dataset import KFoldDataset
+from dataset.simple_split_dataset import SimpleSplitDataset
 from dataset.pair_training_dataset import TrainingProductPairDataset
 from dataset.recommendation_validation_dataset import (
     RecommendationValidationDataset,
@@ -32,7 +32,7 @@ class Experiment:
         learning_rate: set[float],
         recommendation_amount: int = 3,
         min_product_bought: int = 3,
-        k_splits: int = 10,
+        train_val_split: float = 0.8,
         start_models_on: int = 0,
         start_experiment_on: int = 0,
         save_dir: str = "",
@@ -40,8 +40,8 @@ class Experiment:
         validate_only: bool = False,
         gpu: bool = False,
     ) -> None:
-        self.__k_fold_dataset = KFoldDataset(
-            dataset_path, min_product_bought, k_splits
+        self.__simple_split_dataset = SimpleSplitDataset(
+            dataset_path, min_product_bought, train_val_split
         )
 
         self.recommendation_amount = recommendation_amount
@@ -83,9 +83,6 @@ class Experiment:
 
     def __get_current_experiment(self):
         return self.experiment_hparams[self.current_experiment_index]
-
-    def __get_complete_dataset(self):
-        return self.k_fold_dataset.complete_dataset
 
     def __get_current_model(self):
         return self.models[self.current_models_index]
@@ -132,7 +129,7 @@ class Experiment:
             ),
             dry_run=self.dry_run,
             gpu=self.gpu,
-            model_save=False
+            model_save=False,
         )
 
         training_model.train()
@@ -145,7 +142,7 @@ class Experiment:
 
         hparams = self.__get_current_experiment()
 
-        all_unique_item = self.__k_fold_dataset.unique_items
+        all_unique_item = self.__simple_split_dataset.unique_items
 
         with torch.no_grad():
             # * Done because modin cannot pickle "__create_embeddings"
@@ -156,6 +153,13 @@ class Experiment:
                     "Generating embeddings for all unique items",
                 )
             ]
+
+            temp_unique_item = all_unique_item.reset_index()
+            temp_unique_item["embeddings"] = temp_unique_item[
+                "embeddings"
+            ].apply(lambda x: x[0].tolist())
+
+            wandb.log({"unique_items": temp_unique_item})
 
             def get_embeddings(sku: str):
                 return all_unique_item.at[sku, "embeddings"]
@@ -168,6 +172,8 @@ class Experiment:
             precision = []
             recall = []
             f1_score = []
+
+            final_data = []
 
             for batch in tqdm(validation_data, "Validating bath"):
                 for seed, label in tqdm(
@@ -191,6 +197,14 @@ class Experiment:
                     selected_items = all_unique_item[
                         all_unique_item.index.isin(embeddings_distance.index)
                     ]
+
+                    final_data.append(
+                        [
+                            seed.to_json(orient="records"),
+                            label.to_json(orient="records"),
+                            selected_items.to_json(orient="records"),
+                        ]
+                    )
 
                     n_recommended = len(label)
                     n_relevant_and_recommended = len(
@@ -257,6 +271,15 @@ class Experiment:
                     )
                     break
 
+            wandb.log(
+                {
+                    "validate_result": wandb.Table(
+                        columns=["seed", "label", "selected"],
+                        data=final_data,
+                    )
+                }
+            )
+
             print(
                 f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
             )
@@ -270,9 +293,9 @@ class Experiment:
 
     def run_one_experiment(self):
         for k, (train_dataset, validate_dataset) in tqdm(
-            enumerate(self.__k_fold_dataset),
-            desc="K Fold part",
-            total=len(self.__k_fold_dataset),
+            enumerate(self.__simple_split_dataset),
+            desc="Train split part",
+            total=len(self.__simple_split_dataset),
         ):
             hparams = self.__get_current_experiment()
             model_name = self.__get_current_model().model_name
@@ -293,6 +316,9 @@ class Experiment:
                 + self.__get_summary_comment(k)
                 + f"_TIME_{datetime.now().isoformat()}",
             )
+            # wandb.log_artifact("training.csv")
+            # wandb.log_artifact("validation.csv")
+
             summary_writer = self.__get_summary_writer(k)
 
             print("\n\nRUNNING K FOLD ", k, "\n\n")

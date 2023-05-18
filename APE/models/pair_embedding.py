@@ -2,9 +2,11 @@ from tempfile import mkdtemp
 
 import os.path as path
 import torch.nn as nn
+import torch
 import numpy as np
 import random
 import string
+import gc
 
 
 class PairEmbeddingModel(nn.Module):
@@ -36,6 +38,12 @@ class PairEmbeddingModel(nn.Module):
         mmp.flush()
 
         return mmp
+
+    def clean_cache(self, gpu: bool):
+        gc.collect()
+
+        if gpu:
+            torch.cuda.memory.empty_cache()
 
     def model_train(self):
         pass

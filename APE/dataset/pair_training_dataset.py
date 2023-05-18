@@ -1,5 +1,5 @@
 from itertools import combinations
-import modin.pandas as pd
+import pandas as pd
 from torch.utils.data import Dataset
 
 
@@ -19,16 +19,25 @@ class TrainingProductPairDataset(Dataset):
         # [data, label]
         return [row[:2], row[2]]
 
+    def save(self, filename: str = "training.csv"):
+        self.dataset.to_csv(filename)
+
     @staticmethod
     def permute_dataset(cleaned_data: pd.DataFrame) -> pd.DataFrame:
         grouped_training = cleaned_data.groupby("Email")
 
         training_dataset_permuted = []
         for _, group in grouped_training:
-            for b, g in combinations(group["Product description"].tolist(), 2):
-                # label are set to 1 on description that are not the same, because of cross selling
-                # to denote that the data are positive pair (a user bought two of it)
-                training_dataset_permuted.append([b, g, 1 if b != g else -1])
+            descriptions = group["Product description"].tolist()
+            for i in range(0, len(descriptions) - 1):
+                training_dataset_permuted.append(
+                    [descriptions[i], descriptions[i + 1], 1]
+                )
+
+            for i in range(len(descriptions) - 1, 0, -1):
+                training_dataset_permuted.append(
+                    [descriptions[i], descriptions[i - 1], -1]
+                )
 
         return pd.DataFrame(
             training_dataset_permuted,

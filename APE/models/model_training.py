@@ -7,6 +7,7 @@ from tqdm import trange, tqdm
 import torch
 import torch.nn as nn
 import wandb
+import os
 
 from dataset.pair_training_dataset import TrainingProductPairDataset
 from models.pair_embedding import PairEmbeddingModel
@@ -106,6 +107,14 @@ class ModelTraining:
                     print("\n\nDRY RUN, BREAKING AFTER 100 BATCH SIZE\n\n")
                     break
 
+            if (
+                os.getenv("CLEAN_EVERY")
+                and batch_idx % int(os.getenv("CLEAN_EVERY"))
+                and self.gpu
+                and self.dataset_batch_size > 8
+            ):
+                torch.cuda.memory.empty_cache()
+
         self.summary_writer.add_scalar(
             "Loss/Train", loss.item(), global_step=epoch
         )
@@ -117,6 +126,8 @@ class ModelTraining:
                 self.train_each_epoch(epoch)
 
                 print(f"\n\nDone with epoch {epoch}\n\n")
+
+                self.model.clean_cache(self.gpu)
 
         if self.model_save:
             torch.save(self.model.state_dict(), self.model_save_path)

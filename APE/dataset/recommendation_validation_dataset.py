@@ -1,6 +1,7 @@
+from typing import Union
 from torch.utils.data import Dataset
 
-import modin.pandas as pd
+import pandas as pd
 
 
 class RecommendationValidationDataset(Dataset):
@@ -15,8 +16,29 @@ class RecommendationValidationDataset(Dataset):
     def __getitem__(self, index):
         return self.dataset[index]
 
+    def save(self, filename: str = "validation.csv"):
+        buffer = "label;ground_truth\n"
+
+        for row in self.dataset:
+            row_buffer = row[0]["Product description"] + ";"
+            row_buffer += (
+                "["
+                + ",".join(
+                    f'"{desc}"'
+                    for desc in row[1]["Product description"].values
+                )
+                + "]\n"
+            )
+
+            buffer += row_buffer
+
+        with open(filename, "w") as f:
+            f.write(buffer)
+
     @staticmethod
-    def permute_dataset(cleaned_data: pd.DataFrame) -> list[pd.DataFrame]:
+    def permute_dataset(
+        cleaned_data: pd.DataFrame,
+    ) -> list[Union[pd.Series, pd.DataFrame]]:
         email_grouped = cleaned_data.groupby("Email")
 
         validation_dataset_permuted = []
