@@ -54,8 +54,9 @@ class PairEmbeddingModel(nn.Module):
     def model_reset(self):
         pass
 
-    def forward(self, description_1: str, description_2: str):
-        desc_1_emb = self.run_to_model_once(description_1)
-        desc_2_emb = self.run_to_model_once(description_2)
+    def forward(self, anc_desc: str, pos_desc: str, neg_desc: str):
+        anc = self.run_to_model_once(anc_desc)
+        pos = self.run_to_model_once(pos_desc)
+        neg = self.run_to_model_once(neg_desc)
 
-        return desc_1_emb, desc_2_emb
+        return anc, pos, neg

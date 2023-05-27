@@ -1,5 +1,3 @@
-from sklearn.model_selection import KFold
-
 import pandas as pd
 
 from dataset.cleaner_helper import description_cleaner
@@ -50,7 +48,8 @@ class SimpleSplitDataset:
                 self.complete_dataset["Email"].isin(
                     self.training_unique_buyer.index
                 )
-            ]
+            ],
+            self.unique_items
         )
         validation_dataset = RecommendationValidationDataset(
             self.complete_dataset[

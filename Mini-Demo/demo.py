@@ -22,9 +22,9 @@ model_selection = st.selectbox("Model", ("ELMo", "BERT"))
 @st.cache_data
 def get_model_embeddings(model_selection: str):
     if model_selection == "ELMo":
-        file_to_load = "https://github.com/fauh45/KoTA307/raw/master/Mini-Demo/best_elmo.csv"
+        file_to_load = "./best_elmo.csv"
     else:
-        file_to_load = "https://github.com/fauh45/KoTA307/raw/master/Mini-Demo/best_bert.csv"
+        file_to_load = "./best_bert.csv"
 
     df = pd.read_csv(file_to_load)
     df.set_index("Lineitem sku", inplace=True)
@@ -89,7 +89,7 @@ st.caption(
 
 "### Pemilihan Konsumen"
 "Rekomendasi dimulai dari satu konsumen yang akan di rekomendasikan."
-df_dataset = pd.read_csv("https://github.com/fauh45/KoTA307/raw/master/Mini-Demo/cleaned_main_dataset.csv")
+df_dataset = pd.read_csv("./cleaned_main_dataset.csv")
 df_dataset = df_dataset.loc[:, ~df_dataset.columns.str.contains("^Unnamed")]
 df_dataset["Product description"] = df_dataset["Product description"].apply(
     description_cleaner
@@ -130,7 +130,7 @@ embeddings_distance = (
     df.loc[df.index != seed_product["Lineitem sku"]]["embeddings"]
     .apply(lambda x: x.reshape(1, -1))
     .apply(lambda emb2: cosine_distances(seed_embeddings, emb2))
-    .sort_values(ascending=True)
+    .sort_values(ascending=False)
     .head(3)
 )
 

@@ -1,4 +1,3 @@
-from argparse import ArgumentParser
 from itertools import product
 from typing import List
 from datetime import datetime
@@ -315,7 +314,7 @@ class Experiment:
                 "lr": hparams[2],
             },
             reinit=True,
-            name=f"{'DRY_RUN' if self.dry_run else 'FULL'}_"
+            name=f"TRIPLETS_{'DRY_RUN' if self.dry_run else 'FULL'}_"
             + self.__get_summary_comment()
             + f"_TIME_{datetime.now().isoformat()}",
         )

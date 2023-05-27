@@ -1,6 +1,4 @@
 from elmoformanylangs import Embedder
-from torch.autograd import Variable
-import numpy as np
 
 from models.pair_embedding import PairEmbeddingModel
 

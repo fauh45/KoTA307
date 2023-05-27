@@ -1,13 +1,15 @@
-from itertools import combinations
 import pandas as pd
+
 from torch.utils.data import Dataset
 
 
 class TrainingProductPairDataset(Dataset):
-    def __init__(self, cleaned_data: pd.DataFrame) -> None:
+    def __init__(
+        self, cleaned_data: pd.DataFrame, unique_product: pd.DataFrame
+    ) -> None:
         super().__init__()
 
-        self.dataset = self.permute_dataset(cleaned_data)
+        self.dataset = self.permute_dataset(cleaned_data, unique_product)
 
     def __len__(self):
         return len(self.dataset)
@@ -16,14 +18,16 @@ class TrainingProductPairDataset(Dataset):
         # get the row, flatten the result (to 1 dimension list) and convert it to a simple list
         row = self.dataset.loc[index, :].values.flatten().tolist()
 
-        # [data, label]
-        return [row[:2], row[2]]
+        # [anchor, positive, negative]
+        return row
 
     def save(self, filename: str = "training.csv"):
         self.dataset.to_csv(filename)
 
     @staticmethod
-    def permute_dataset(cleaned_data: pd.DataFrame) -> pd.DataFrame:
+    def permute_dataset(
+        cleaned_data: pd.DataFrame, unique_product: pd.DataFrame
+    ) -> pd.DataFrame:
         grouped_training = cleaned_data.groupby("Email")
 
         training_dataset_permuted = []
@@ -31,15 +35,18 @@ class TrainingProductPairDataset(Dataset):
             descriptions = group["Product description"].tolist()
             for i in range(0, len(descriptions) - 1):
                 training_dataset_permuted.append(
-                    [descriptions[i], descriptions[i + 1], 1]
-                )
-
-            for i in range(len(descriptions) - 1, 0, -1):
-                training_dataset_permuted.append(
-                    [descriptions[i], descriptions[i - 1], -1]
+                    [
+                        descriptions[i],
+                        descriptions[i + 1],
+                        unique_product.loc[
+                            ~unique_product.index.isin(group["Lineitem sku"])
+                        ]["Product description"]
+                        .sample(1, random_state=69)
+                        .values[0],
+                    ]
                 )
 
         return pd.DataFrame(
             training_dataset_permuted,
-            columns=["description_1", "description_1", "label"],
+            columns=["anchor", "positive", "negative"],
         ).reset_index(drop=True)

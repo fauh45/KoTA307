@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 from tqdm import trange, tqdm
+from sklearn.metrics.pairwise import cosine_distances
 
 import torch
 import torch.nn as nn
@@ -24,7 +25,10 @@ class ModelTraining:
         summary_writer: SummaryWriter,
         model_save: bool = True,
         model_save_path: str = "./",
-        model_loss=nn.CosineEmbeddingLoss(),
+        model_loss=nn.TripletMarginWithDistanceLoss(
+            distance_function=lambda x, y: 1.0
+            - torch.nn.functional.cosine_similarity(x, y)
+        ),
         random_seed: int = 69,
         dry_run: bool = False,
         gpu: bool = False,
@@ -66,20 +70,16 @@ class ModelTraining:
 
         running_loss = 0.0
 
-        for batch_idx, ((descriptions_1, description_2), labels) in tqdm(
+        for batch_idx, (anchor, positive, negative) in tqdm(
             enumerate(training_data),
             desc="Training Batch",
             total=len(training_data),
         ):
             self.optimizer.zero_grad()
 
-            model_outputs = self.model(descriptions_1, description_2)
+            model_outputs = self.model(anchor, positive, negative)
 
-            temp_label = labels
-            if self.gpu:
-                temp_label = torch.tensor(labels).to("cuda")
-
-            loss = self.model_loss(*model_outputs, temp_label)
+            loss = self.model_loss(*model_outputs)
             loss.backward()
 
             running_loss += loss.item()
@@ -92,7 +92,7 @@ class ModelTraining:
                 print(
                     "Train Epoch: {} [{}/{} ({:.0f}%)]\tRunning Loss: {:.6f}\n\n".format(
                         epoch,
-                        batch_idx * len(descriptions_1),
+                        batch_idx * len(anchor),
                         len(training_data.dataset),
                         100.0 * batch_idx / len(training_data),
                         running_loss / 101,

@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, BertModel, AutoModel
+from transformers import AutoTokenizer, AutoModel
 
 from models.pair_embedding import PairEmbeddingModel
 
