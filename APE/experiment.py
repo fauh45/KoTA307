@@ -245,6 +245,8 @@ class Experiment:
                     )
 
                     for i, item in enumerate(selected_items.iterrows()):
+                        if i > len(label): break
+
                         corr.append(
                             pearsonr(
                                 item[1]["embeddings"][0],
