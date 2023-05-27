@@ -33,6 +33,10 @@ class TrainingProductPairDataset(Dataset):
 
         training_dataset_permuted = []
         for _, group in grouped_training:
+            unique_product_not_user = unique_product.loc[
+                ~unique_product.index.isin(group["Lineitem sku"])
+            ]
+
             for key, group in grouped_training:
                 for b, g in permutations(
                     group["Product description"].tolist(), 2
@@ -41,11 +45,7 @@ class TrainingProductPairDataset(Dataset):
                         [
                             b,
                             g,
-                            unique_product.loc[
-                                ~unique_product.index.isin(
-                                    group["Lineitem sku"]
-                                )
-                            ]["Product description"]
+                            unique_product_not_user["Product description"]
                             .sample(1, random_state=69)
                             .values[0],
                         ]
