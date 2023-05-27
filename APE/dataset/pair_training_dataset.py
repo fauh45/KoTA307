@@ -2,7 +2,9 @@ from itertools import permutations
 
 import pandas as pd
 import numpy as np
+import math
 
+from tqdm import tqdm
 from torch.utils.data import Dataset
 
 
@@ -34,22 +36,28 @@ class TrainingProductPairDataset(Dataset):
         grouped_training = cleaned_data.groupby("Email")
 
         training_dataset_permuted = []
-        for _, group in grouped_training:
+        for _, group in tqdm(grouped_training, total=len(grouped_training)):
+            group_len = len(group)
             unique_product_not_user = unique_product.loc[
                 ~unique_product.index.isin(group["Lineitem sku"])
             ]["Product description"].to_numpy()
 
-            for key, group in grouped_training:
-                for b, g in permutations(
-                    group["Product description"].tolist(), 2
-                ):
-                    training_dataset_permuted.append(
-                        [
-                            b,
-                            g,
-                            np.random.choice(unique_product_not_user),
-                        ]
-                    )
+            num_perm = math.factorial(group_len) / math.factorial(
+                group_len - 2
+            )
+            random_choice = np.random.choice(
+                unique_product_not_user, size=num_perm
+            )
+            random_choice_index = 0
+
+            for b, g in permutations(
+                tqdm(group["Product description"].tolist(), 2)
+            ):
+                training_dataset_permuted.append(
+                    [b, g, random_choice[random_choice_index]]
+                )
+
+                random_choice_index += 1
 
             # descriptions = group["Product description"].tolist()
             # for i in range(0, len(descriptions) - 1):
