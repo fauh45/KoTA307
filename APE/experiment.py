@@ -245,7 +245,7 @@ class Experiment:
                     )
 
                     for i, item in enumerate(selected_items.iterrows()):
-                        if i > len(label): break
+                        if i >= len(label): break
 
                         corr.append(
                             pearsonr(
