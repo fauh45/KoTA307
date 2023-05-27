@@ -42,9 +42,9 @@ class TrainingProductPairDataset(Dataset):
                 ~unique_product.index.isin(group["Lineitem sku"])
             ]["Product description"].to_numpy()
 
-            num_perm = math.factorial(group_len) / math.factorial(
+            num_perm = int(math.factorial(group_len) / math.factorial(
                 group_len - 2
-            )
+            ))
             random_choice = np.random.choice(
                 unique_product_not_user, size=num_perm
             )
