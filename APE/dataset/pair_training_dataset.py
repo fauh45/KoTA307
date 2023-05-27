@@ -1,5 +1,7 @@
 from itertools import permutations
+
 import pandas as pd
+import numpy as np
 
 from torch.utils.data import Dataset
 
@@ -35,7 +37,7 @@ class TrainingProductPairDataset(Dataset):
         for _, group in grouped_training:
             unique_product_not_user = unique_product.loc[
                 ~unique_product.index.isin(group["Lineitem sku"])
-            ]
+            ]["Product description"].to_numpy()
 
             for key, group in grouped_training:
                 for b, g in permutations(
@@ -45,9 +47,7 @@ class TrainingProductPairDataset(Dataset):
                         [
                             b,
                             g,
-                            unique_product_not_user["Product description"]
-                            .sample(1, random_state=69)
-                            .values[0],
+                            np.random.choice(unique_product_not_user),
                         ]
                     )
 
