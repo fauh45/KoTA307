@@ -1,3 +1,4 @@
+from itertools import permutations
 import pandas as pd
 
 from torch.utils.data import Dataset
@@ -32,19 +33,37 @@ class TrainingProductPairDataset(Dataset):
 
         training_dataset_permuted = []
         for _, group in grouped_training:
-            descriptions = group["Product description"].tolist()
-            for i in range(0, len(descriptions) - 1):
-                training_dataset_permuted.append(
-                    [
-                        descriptions[i],
-                        descriptions[i + 1],
-                        unique_product.loc[
-                            ~unique_product.index.isin(group["Lineitem sku"])
-                        ]["Product description"]
-                        .sample(1, random_state=69)
-                        .values[0],
-                    ]
-                )
+            for key, group in grouped_training:
+                for b, g in permutations(
+                    group["Product description"].tolist(), 2
+                ):
+                    training_dataset_permuted.append(
+                        [
+                            b,
+                            g,
+                            unique_product.loc[
+                                ~unique_product.index.isin(
+                                    group["Lineitem sku"]
+                                )
+                            ]["Product description"]
+                            .sample(1, random_state=69)
+                            .values[0],
+                        ]
+                    )
+
+            # descriptions = group["Product description"].tolist()
+            # for i in range(0, len(descriptions) - 1):
+            #     training_dataset_permuted.append(
+            #         [
+            #             descriptions[i],
+            #             descriptions[i + 1],
+            #             unique_product.loc[
+            #                 ~unique_product.index.isin(group["Lineitem sku"])
+            #             ]["Product description"]
+            #             .sample(1, random_state=69)
+            #             .values[0],
+            #         ]
+            #     )
 
         return pd.DataFrame(
             training_dataset_permuted,

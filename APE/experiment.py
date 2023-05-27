@@ -137,7 +137,7 @@ class Experiment:
 
         training_model.train()
 
-    def validate(self, dataset: RecommendationValidationDataset):
+    def validate(self, dataset: RecommendationValidationDataset, n_rec: int):
         current_model = self.__get_current_model()
 
         current_model.eval()
@@ -194,7 +194,7 @@ class Experiment:
                             )
                         )
                         .sort_values(ascending=True)
-                        .head(len(label))
+                        .head(n_rec)
                     )
 
                     selected_items = all_unique_item[
@@ -209,7 +209,7 @@ class Experiment:
                         ]
                     )
 
-                    n_recommended = len(label)
+                    n_recommended = n_rec
                     n_relevant_and_recommended = len(
                         np.intersect1d(
                             selected_items.index, label["Lineitem sku"]
@@ -261,10 +261,10 @@ class Experiment:
 
                 wandb.log(
                     {
-                        "validate/corr": np.average(corr),
-                        "validate/precision": np.average(precision),
-                        "validate/recall": np.average(recall),
-                        "validate/f1": np.average(f1_score),
+                        f"validate/corr-{n_rec}": np.average(corr),
+                        f"validate/precision-{n_rec}": np.average(precision),
+                        f"validate/recall-{n_rec}": np.average(recall),
+                        f"validate/f1-{n_rec}": np.average(f1_score),
                     }
                 )
 
@@ -276,7 +276,7 @@ class Experiment:
 
             wandb.log(
                 {
-                    "validate_result": wandb.Table(
+                    f"validate_result_{n_rec}": wandb.Table(
                         columns=["seed", "label", "selected"],
                         data=final_data,
                     )
@@ -319,29 +319,11 @@ class Experiment:
             + f"_TIME_{datetime.now().isoformat()}",
         )
 
-        summary_writer = self.__get_summary_writer()
-
         if not self.validate_only:
             self.train(train_dataset)
 
-        avg_corr, avg_precision, avg_recall, avg_f1 = self.validate(
-            validate_dataset
-        )
-
-        summary_writer.add_hparams(
-            {
-                "model": model_name,
-                "epoch": hparams[0],
-                "batch_size": hparams[1],
-                "lr": hparams[2],
-            },
-            {
-                "hparam/avg_corr": avg_corr,
-                "hparam/avg_precision": avg_precision,
-                "hparam/avg_recall": avg_recall,
-                "hparam/avg_f1": avg_f1,
-            },
-        )
+        for n in tqdm([5, 10, 25, 50, 100]):
+            self.validate(validate_dataset, n)
 
     def run_experiment(self):
         for _ in range(len(self.models)):
