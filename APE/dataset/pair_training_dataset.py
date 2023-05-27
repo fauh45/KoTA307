@@ -42,16 +42,16 @@ class TrainingProductPairDataset(Dataset):
                 ~unique_product.index.isin(group["Lineitem sku"])
             ]["Product description"].to_numpy()
 
-            num_perm = int(math.factorial(group_len) / math.factorial(
-                group_len - 2
-            ))
+            num_perm = int(
+                math.factorial(group_len) / math.factorial(group_len - 2)
+            )
             random_choice = np.random.choice(
                 unique_product_not_user, size=num_perm
             )
             random_choice_index = 0
 
             for b, g in permutations(
-                tqdm(group["Product description"].tolist(), 2)
+                tqdm(group["Product description"].tolist()), 2
             ):
                 training_dataset_permuted.append(
                     [b, g, random_choice[random_choice_index]]
