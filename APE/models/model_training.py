@@ -82,7 +82,7 @@ class ModelTraining:
             loss = self.model_loss(*model_outputs)
             loss.backward()
 
-            total_loss += loss.item() * anchor.size(0)
+            total_loss += loss.item() * len(anchor)
 
             self.optimizer.step()
 
