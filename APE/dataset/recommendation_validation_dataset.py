@@ -50,15 +50,12 @@ class RecommendationValidationDataset(Dataset):
             # p1 (seed input) -> {p2, p3} (label)
             # p2 -> (p1, p3)
             # p3 -> (p1, p2)
-            for i in range(len(email_grouped_reset_index)):
-                val_input = email_grouped_reset_index.loc[i]
-                val_ground_truth = email_grouped_reset_index.drop(
-                    i
-                ).reset_index(drop=True)
+            val_input = email_grouped_reset_index.loc[0]
+            val_ground_truth = email_grouped_reset_index.drop(0).reset_index(
+                drop=True
+            )
 
-                validation_dataset_permuted.append(
-                    [val_input, val_ground_truth]
-                )
+            validation_dataset_permuted.append([val_input, val_ground_truth])
 
         # print(validation_dataset_permuted[0])
         return validation_dataset_permuted
