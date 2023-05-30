@@ -16,7 +16,7 @@ class SimpleSplitDataset:
         min_product_bought: int = 3,
         train_val_split: int = 0.8,
         random_state: int = 69,
-        save: bool = False
+        save: bool = False,
     ) -> None:
         df = pd.read_csv(csv_path)
         df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
@@ -26,17 +26,25 @@ class SimpleSplitDataset:
 
         self.complete_dataset = df
 
-        uniquer_buyer = self.complete_dataset["Email"].value_counts(
-            dropna=True
-        )
-        # Only do training and validation with buyer that already bought 2 or more
-        uniquer_buyer = uniquer_buyer[uniquer_buyer >= min_product_bought]
+        unique_buyer = self.complete_dataset["Email"].value_counts(dropna=True)
 
-        self.unique_buyer = uniquer_buyer.index.to_list()
-        self.training_unique_buyer = uniquer_buyer.sample(
+        # Only do training and validation with buyer that already bought 2 or more
+        unique_buyer = unique_buyer[unique_buyer >= min_product_bought]
+
+        Q1 = unique_buyer.quantile(0.25)
+        Q3 = unique_buyer.quantile(0.75)
+        IQR = Q3 - Q1
+
+        non_outlier = (unique_buyer < (Q1 - 1.5 * IQR)) | (
+            unique_buyer > (Q3 + 1.5 * IQR)
+        )
+        non_outlier_unique_buyer = unique_buyer[non_outlier]
+
+        self.unique_buyer = non_outlier_unique_buyer.index.to_list()
+        self.training_unique_buyer = unique_buyer.sample(
             frac=train_val_split, random_state=random_state
         )
-        self.validation_unique_buyer = uniquer_buyer.drop(
+        self.validation_unique_buyer = unique_buyer.drop(
             self.training_unique_buyer.index
         )
 
