@@ -95,7 +95,7 @@ class ModelTraining:
                         batch_idx * len(descriptions_1),
                         len(training_data.dataset),
                         100.0 * batch_idx / len(training_data),
-                        total_loss / batch_idx,
+                        total_loss / (batch_idx + 1),
                     )
                 )
 
