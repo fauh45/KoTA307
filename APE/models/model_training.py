@@ -64,7 +64,7 @@ class ModelTraining:
 
         training_data = self.get_data_loader(self.dataset)
 
-        running_loss = 0.0
+        total_loss = 0.0
 
         for batch_idx, ((descriptions_1, description_2), labels) in tqdm(
             enumerate(training_data),
@@ -82,7 +82,7 @@ class ModelTraining:
             loss = self.model_loss(*model_outputs, temp_label)
             loss.backward()
 
-            running_loss += loss.item()
+            total_loss += loss.item() * len(descriptions_1)
 
             self.optimizer.step()
 
@@ -95,13 +95,9 @@ class ModelTraining:
                         batch_idx * len(descriptions_1),
                         len(training_data.dataset),
                         100.0 * batch_idx / len(training_data),
-                        running_loss / 101,
+                        total_loss / batch_idx,
                     )
                 )
-
-                wandb.log({"train/running-loss": running_loss / 101})
-
-                running_loss = 0.0
 
                 if self.dry_run:
                     print("\n\nDRY RUN, BREAKING AFTER 100 BATCH SIZE\n\n")
@@ -115,10 +111,11 @@ class ModelTraining:
             ):
                 torch.cuda.memory.empty_cache()
 
+        training_loss = total_loss / len(training_data.sampler)
         self.summary_writer.add_scalar(
-            "Loss/Train", loss.item(), global_step=epoch
+            "Loss/Train", training_loss, global_step=epoch
         )
-        wandb.log({"train/loss": loss.item()})
+        wandb.log({"train/loss": training_loss})
 
     def train(self):
         with torch.enable_grad():
