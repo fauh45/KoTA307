@@ -23,7 +23,7 @@ class SimpleSplitDataset:
         )
 
         B2B_SKU_CONDITION = (
-            df["Lineitem sku"].str.startswith(["AIA", "AXA", "OUTINT"])
+            df["Lineitem sku"].str.startswith(("AIA", "AXA", "OUTINT"))
         ) | (
             df["Lineitem sku"].str.contains(
                 r"^[^\d\W]{3}(?:CON|WED|DUK|PPB)[\w\d]{4}$"
