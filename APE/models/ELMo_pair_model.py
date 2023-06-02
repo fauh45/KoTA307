@@ -12,7 +12,7 @@ class ELMoPairModel(PairEmbeddingModel):
 
         self.__pretrained_model_dir = pretrained_model_dir
 
-        self.ffnn = torch.nn.Linear(1024 * 3, 3)
+        self.ffnn = torch.nn.Linear(1024 * 3, 2)
 
         self.__embedder = Embedder(pretrained_model_dir)
         self.__model = self.__embedder.model

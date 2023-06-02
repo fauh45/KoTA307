@@ -14,7 +14,7 @@ class BERTPairModel(PairEmbeddingModel):
         self.__tokenizer = AutoTokenizer.from_pretrained(pretrained_name)
         self.__model = AutoModel.from_pretrained(pretrained_name)
 
-        self.ffnn = torch.nn.Linear(768*3, 3)
+        self.ffnn = torch.nn.Linear(768*3, 2)
 
         self.gpu = gpu
         if gpu:

@@ -55,10 +55,10 @@ class TrainingProductPairDataset(Dataset):
                 training_dataset_permuted.append([b, g, 1])
 
                 training_dataset_permuted.append(
-                    [b, random_choice[random_choice_index], -1]
+                    [b, random_choice[random_choice_index], 0]
                 )
                 training_dataset_permuted.append(
-                    [g, random_choice[random_choice_index], -1]
+                    [g, random_choice[random_choice_index], 0]
                 )
 
                 random_choice_index += 1
