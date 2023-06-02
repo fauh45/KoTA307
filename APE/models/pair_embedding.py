@@ -61,6 +61,6 @@ class PairEmbeddingModel(nn.Module):
         desc_1_emb = self.run_to_model_once(description_1)
         desc_2_emb = self.run_to_model_once(description_2)
 
-        ffnn = self.linear_feed_forward(torch.cat([desc_1_emb, desc_2_emb, torch.abs(torch.sub(description_1, description_2))], dim=-1))
+        ffnn = self.linear_feed_forward(torch.cat([desc_1_emb, desc_2_emb, torch.abs(torch.sub(desc_1_emb, desc_2_emb))], dim=-1))
 
         return ffnn
