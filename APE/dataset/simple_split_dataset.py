@@ -30,7 +30,7 @@ class SimpleSplitDataset:
             )
         )
 
-        self.complete_dataset = df[~B2B_SKU_CONDITION]
+        self.complete_dataset = df[B2B_SKU_CONDITION]
 
         unique_buyer = self.complete_dataset["Email"].value_counts(dropna=True)
         # Only do training and validation with buyer that already bought 2 or more
