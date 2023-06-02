@@ -15,8 +15,11 @@ class PairEmbeddingModel(nn.Module):
 
         self.model_name = model_name
 
-    def run_to_model_once(self, sentence_input: str):
+    def run_to_model_once(self, sentence_input: str) -> torch.Tensor:
         return NotImplementedError("Please implement run_to_model_once method")
+    
+    def linear_feed_forward(self, pooling_output: torch.Tensor) -> torch.Tensor:
+        return NotImplementedError()
 
     def generate_temp_file_path(self):
         return path.join(
@@ -58,4 +61,6 @@ class PairEmbeddingModel(nn.Module):
         desc_1_emb = self.run_to_model_once(description_1)
         desc_2_emb = self.run_to_model_once(description_2)
 
-        return desc_1_emb, desc_2_emb
+        ffnn = self.linear_feed_forward(torch.cat([desc_1_emb, desc_2_emb, torch.abs(torch.sub(description_1, description_2))], dim=-1))
+
+        return ffnn

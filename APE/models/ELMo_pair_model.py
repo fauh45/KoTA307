@@ -1,6 +1,7 @@
+import torch
+
 from elmoformanylangs import Embedder
 from torch.autograd import Variable
-import numpy as np
 
 from models.pair_embedding import PairEmbeddingModel
 
@@ -10,6 +11,8 @@ class ELMoPairModel(PairEmbeddingModel):
         super().__init__("ELMo")
 
         self.__pretrained_model_dir = pretrained_model_dir
+
+        self.ffnn = torch.nn.Linear(1024 * 3, 3)
 
         self.__embedder = Embedder(pretrained_model_dir)
         self.__model = self.__embedder.model
@@ -22,7 +25,6 @@ class ELMoPairModel(PairEmbeddingModel):
         return [cleaned_desc]
 
     def run_to_model_once(self, sentence_input: str):
-        # TODO: Not really sure about this one, is it really updating the weights of the ELMo model?
         # Updated the sents2elmo using tensor instead, but still need to make sure
         tensored = self.__embedder.sents2elmo(
             self.__split_description(sentence_input)
@@ -32,6 +34,11 @@ class ELMoPairModel(PairEmbeddingModel):
             tensored = tensored.cpu()
 
         return tensored
+
+    def linear_feed_forward(
+        self, pooling_output: torch.Tensor
+    ) -> torch.Tensor:
+        return self.ffnn(pooling_output)
 
     def model_eval(self):
         self.__model.eval()

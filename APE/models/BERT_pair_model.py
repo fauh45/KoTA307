@@ -1,3 +1,5 @@
+import torch
+
 from transformers import AutoTokenizer, BertModel, AutoModel
 
 from models.pair_embedding import PairEmbeddingModel
@@ -11,6 +13,8 @@ class BERTPairModel(PairEmbeddingModel):
 
         self.__tokenizer = AutoTokenizer.from_pretrained(pretrained_name)
         self.__model = AutoModel.from_pretrained(pretrained_name)
+
+        self.ffnn = torch.nn.Linear(768*3, 3)
 
         self.gpu = gpu
         if gpu:
@@ -35,6 +39,9 @@ class BERTPairModel(PairEmbeddingModel):
         output = self.__model(**tokenized)
 
         return output.pooler_output
+     
+    def linear_feed_forward(self, pooling_output: torch.Tensor) -> torch.Tensor:
+        return self.ffnn(pooling_output)
 
     def model_eval(self):
         self.__model.eval()

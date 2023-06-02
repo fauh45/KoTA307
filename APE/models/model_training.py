@@ -24,7 +24,7 @@ class ModelTraining:
         summary_writer: SummaryWriter,
         model_save: bool = True,
         model_save_path: str = "./",
-        model_loss=nn.CosineEmbeddingLoss(),
+        model_loss=nn.CrossEntropyLoss(),
         random_seed: int = 69,
         dry_run: bool = False,
         gpu: bool = False,
@@ -79,7 +79,7 @@ class ModelTraining:
             if self.gpu:
                 temp_label = torch.tensor(labels).to("cuda")
 
-            loss = self.model_loss(*model_outputs, temp_label)
+            loss = self.model_loss(model_outputs, temp_label)
             loss.backward()
 
             total_loss += loss.item() * len(descriptions_1)

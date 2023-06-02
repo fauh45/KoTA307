@@ -38,7 +38,7 @@ class SimpleSplitDataset:
         non_outlier = (unique_buyer < (Q1 - 1.5 * IQR)) | (
             unique_buyer > (Q3 + 1.5 * IQR)
         )
-        non_outlier_unique_buyer = unique_buyer[non_outlier]
+        non_outlier_unique_buyer = unique_buyer[~non_outlier]
 
         self.unique_buyer = non_outlier_unique_buyer.index.to_list()
         self.training_unique_buyer = unique_buyer.sample(
@@ -47,6 +47,10 @@ class SimpleSplitDataset:
         self.validation_unique_buyer = unique_buyer.drop(
             self.training_unique_buyer.index
         )
+
+        self.complete_dataset = self.complete_dataset[
+            self.complete_dataset["Email"].isin(unique_buyer.index)
+        ]
 
         self.unique_items = self.get_all_unique_items(self.complete_dataset)
 
