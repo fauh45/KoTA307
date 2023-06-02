@@ -62,7 +62,8 @@ class SimpleSplitDataset:
                 self.complete_dataset["Email"].isin(
                     self.training_unique_buyer.index
                 )
-            ]
+            ],
+            self.unique_items
         )
         validation_dataset = RecommendationValidationDataset(
             self.complete_dataset[
