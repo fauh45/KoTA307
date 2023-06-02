@@ -18,6 +18,9 @@ class ELMoPairModel(PairEmbeddingModel):
         self.__model = self.__embedder.model
         self.gpu = gpu
 
+        if gpu:
+            self.ffnn = self.ffnn.to("cuda")
+
     def __split_description(self, description: str):
         cleaned_desc = "".join(filter(str.isalnum, description))
         cleaned_desc = cleaned_desc.split(" ")

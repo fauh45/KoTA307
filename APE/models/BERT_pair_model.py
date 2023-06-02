@@ -19,6 +19,7 @@ class BERTPairModel(PairEmbeddingModel):
         self.gpu = gpu
         if gpu:
             self.__model = self.__model.to("cuda")
+            self.ffnn = self.ffnn.to("cuda")
 
     def __tokenize(self, sentence_input: str):
         tokenizer_result = self.__tokenizer(
