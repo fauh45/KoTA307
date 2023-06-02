@@ -316,7 +316,7 @@ class Experiment:
                 "lr": hparams[2],
             },
             reinit=True,
-            name=f"TRIPLETS_NON_B2B_{'DRY_RUN' if self.dry_run else 'FULL'}_"
+            name=f"TRIPLETS_B2B_{'DRY_RUN' if self.dry_run else 'FULL'}_"
             + self.__get_summary_comment()
             + f"_TIME_{datetime.now().isoformat()}",
         )
