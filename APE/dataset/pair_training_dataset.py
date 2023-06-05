@@ -41,6 +41,7 @@ class TrainingProductPairDataset(Dataset):
             unique_product_not_user = unique_product.loc[
                 ~unique_product.index.isin(group["Lineitem sku"])
             ]["Product description"].to_numpy()
+            descriptions = group["Product description"].tolist()
 
             # num_perm = int(
             #     math.factorial(group_len) / math.factorial(group_len - 2)
@@ -59,7 +60,6 @@ class TrainingProductPairDataset(Dataset):
 
             #     random_choice_index += 1
 
-            descriptions = group["Product description"].tolist()
             for i in range(0, len(descriptions) - 1):
                 training_dataset_permuted.append(
                     [
