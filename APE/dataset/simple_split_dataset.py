@@ -48,6 +48,10 @@ class SimpleSplitDataset:
             self.training_unique_buyer.index
         )
 
+        self.complete_dataset = self.complete_dataset[
+            self.complete_dataset["Email"].isin(unique_buyer.index)
+        ]
+
         self.unique_items = self.get_all_unique_items(self.complete_dataset)
 
         self.save = save
