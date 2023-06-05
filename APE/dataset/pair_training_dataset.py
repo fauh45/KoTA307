@@ -36,6 +36,38 @@ class TrainingProductPairDataset(Dataset):
 
         training_dataset_permuted = []
         for _, group in grouped_training:
+            group_len = len(group)
+            unique_product_not_user = unique_product.loc[
+                ~unique_product.index.isin(group["Lineitem sku"])
+            ]["Product description"].to_numpy()
+            descriptions = group["Product description"].tolist()
+
+            # num_perm = int(
+            #     math.factorial(group_len) / math.factorial(group_len - 2)
+            # )
+            random_choice = np.random.choice(
+                unique_product_not_user, size=len(descriptions)
+            )
+            random_choice_index = 0
+
+            # for b, g in combinations(
+            #     tqdm(group["Product description"].tolist()), 2
+            # ):
+            #     training_dataset_permuted.append(
+            #         [b, g, random_choice[random_choice_index]]
+            #     )
+
+            #     random_choice_index += 1
+
+            for i in range(0, len(descriptions) - 1):
+                training_dataset_permuted.append(
+                    [descriptions[i], descriptions[i + 1], 1]
+                )
+
+                training_dataset_permuted.append(
+                    [descriptions[i], random_choice[random_choice_index], 0]
+                )
+                random_choice_index += 1
             # group_len = len(group)
             # unique_product_not_user = unique_product.loc[
             #     ~unique_product.index.isin(group["Lineitem sku"])
@@ -49,19 +81,19 @@ class TrainingProductPairDataset(Dataset):
             # )
             # random_choice_index = 0
 
-            for b, g in combinations(
-                tqdm(group["Product description"].tolist()), 2
-            ):
-                training_dataset_permuted.append([b, g, 1])
+            # for b, g in combinations(
+            #     tqdm(group["Product description"].tolist()), 2
+            # ):
+            # training_dataset_permuted.append([b, g, 1])
 
-                # training_dataset_permuted.append(
-                #     [b, random_choice[random_choice_index], 0]
-                # )
-                # training_dataset_permuted.append(
-                #     [g, random_choice[random_choice_index], 0]
-                # )
+            # training_dataset_permuted.append(
+            #     [b, random_choice[random_choice_index], 0]
+            # )
+            # training_dataset_permuted.append(
+            #     [g, random_choice[random_choice_index], 0]
+            # )
 
-                # random_choice_index += 1
+            # random_choice_index += 1
 
         return pd.DataFrame(
             training_dataset_permuted,
