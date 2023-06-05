@@ -11,11 +11,13 @@ import gc
 
 class PairEmbeddingModel(nn.Module):
     def __init__(self, model_name: str) -> None:
-        super().__init__()
+        super(PairEmbeddingModel, self).__init__()
 
         self.model_name = model_name
 
-    def run_to_model_once(self, sentence_input: str) -> torch.Tensor:
+    def run_to_model_once(
+        self, sentence_input: tuple[str, ...]
+    ) -> torch.Tensor:
         return NotImplementedError("Please implement run_to_model_once method")
 
     def linear_feed_forward(
@@ -59,7 +61,9 @@ class PairEmbeddingModel(nn.Module):
     def model_reset(self):
         pass
 
-    def forward(self, description_1: str, description_2: str):
+    def forward(
+        self, description_1: tuple[str, ...], description_2: tuple[str, ...]
+    ):
         desc_1_emb = self.run_to_model_once(description_1)
         desc_2_emb = self.run_to_model_once(description_2)
 

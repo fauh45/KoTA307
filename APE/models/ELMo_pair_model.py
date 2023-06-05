@@ -1,14 +1,13 @@
 import torch
 
 from elmoformanylangs import Embedder
-from torch.autograd import Variable
 
 from models.pair_embedding import PairEmbeddingModel
 
 
 class ELMoPairModel(PairEmbeddingModel):
     def __init__(self, pretrained_model_dir: str, gpu: bool) -> None:
-        super().__init__("ELMo")
+        super(ELMoPairModel, self).__init__("ELMo")
 
         self.__pretrained_model_dir = pretrained_model_dir
 
@@ -21,17 +20,22 @@ class ELMoPairModel(PairEmbeddingModel):
         if gpu:
             self.ffnn = self.ffnn.to("cuda")
 
-    def __split_description(self, description: str):
-        cleaned_desc = "".join(filter(str.isalnum, description))
-        cleaned_desc = cleaned_desc.split(" ")
+    def __split_description(self, description: tuple[str, ...]):
+        cleaned_desc = []
 
-        return [cleaned_desc]
+        for desc in description:
+            temp = desc.split(" ")
 
-    def run_to_model_once(self, sentence_input: str):
+            cleaned_desc.append(temp)
+
+        return cleaned_desc
+
+    def run_to_model_once(self, sentence_input: tuple[str, ...]):
         # Updated the sents2elmo using tensor instead, but still need to make sure
         tensored = self.__embedder.sents2elmo(
             self.__split_description(sentence_input)
-        )[0]
+        )
+        tensored = torch.stack(tensored, dim=0)
 
         if not self.gpu:
             tensored = tensored.cpu()
