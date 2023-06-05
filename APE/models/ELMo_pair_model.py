@@ -13,18 +13,22 @@ class ELMoPairModel(PairEmbeddingModel):
         self.__model = self.__embedder.model
         self.gpu = gpu
 
-    def __split_description(self, description: str):
-        cleaned_desc = "".join(filter(str.isalnum, description))
-        cleaned_desc = cleaned_desc.split(" ")
+    def __split_description(self, description: tuple[str, ...]):
+        cleaned_desc = []
 
-        return [cleaned_desc]
+        for desc in description:
+            temp = desc.split(" ")
 
-    def run_to_model_once(self, sentence_input: str):
-        # TODO: Not really sure about this one, is it really updating the weights of the ELMo model?
+            cleaned_desc.append(temp)
+
+        return cleaned_desc
+
+    def run_to_model_once(self, sentence_input: tuple[str, ...]):
         # Updated the sents2elmo using tensor instead, but still need to make sure
         tensored = self.__embedder.sents2elmo(
             self.__split_description(sentence_input)
-        )[0]
+        )
+        tensored = torch.stack(tensored, dim=0)
 
         if not self.gpu:
             tensored = tensored.cpu()
