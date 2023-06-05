@@ -1,3 +1,5 @@
+import torch
+
 from elmoformanylangs import Embedder
 
 from models.pair_embedding import PairEmbeddingModel
