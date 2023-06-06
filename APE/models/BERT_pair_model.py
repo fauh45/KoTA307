@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer, BertModel, AutoModel
+from helper.gpu import GPU_DEVICE
 
 from models.pair_embedding import PairEmbeddingModel
 
@@ -14,7 +15,7 @@ class BERTPairModel(PairEmbeddingModel):
 
         self.gpu = gpu
         if gpu:
-            self.__model = self.__model.to("cuda")
+            self.__model = self.__model.to(GPU_DEVICE)
 
     def __tokenize(self, sentence_input: str):
         tokenizer_result = self.__tokenizer(
@@ -26,7 +27,7 @@ class BERTPairModel(PairEmbeddingModel):
         )
 
         if self.gpu:
-            tokenizer_result = tokenizer_result.to("cuda")
+            tokenizer_result = tokenizer_result.to(GPU_DEVICE)
 
         return tokenizer_result
 
@@ -54,4 +55,4 @@ class BERTPairModel(PairEmbeddingModel):
         self.__model = AutoModel.from_pretrained(self.__pretrained_name)
 
         if self.gpu:
-            self.__model = self.__model.to("cuda")
+            self.__model = self.__model.to(GPU_DEVICE)

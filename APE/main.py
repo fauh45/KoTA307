@@ -2,6 +2,7 @@ import argparse
 import torch
 import sys
 import traceback
+from helper.gpu import GPU_DEVICE
 
 from models.ELMo_pair_model import ELMoPairModel
 from models.BERT_pair_model import BERTPairModel
@@ -64,7 +65,7 @@ def start_experiment():
             print("\n\nRUNNING DRY!\n\n")
 
         device = (
-            torch.device("cuda")
+            torch.device(GPU_DEVICE)
             if torch.cuda.is_available()
             else torch.device("cpu")
         )

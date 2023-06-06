@@ -11,6 +11,7 @@ import os
 
 from dataset.pair_training_dataset import TrainingProductPairDataset
 from helper.debug import IS_DEBUG
+from helper.gpu import GPU_DEVICE
 from models.pair_embedding import PairEmbeddingModel
 
 
@@ -75,7 +76,7 @@ class ModelTraining:
         ):
             temp_label = labels
             if self.gpu:
-                temp_label = torch.tensor(labels).to("cuda")
+                temp_label = torch.tensor(labels).to(GPU_DEVICE)
 
             self.optimizer.zero_grad()
 
@@ -86,7 +87,7 @@ class ModelTraining:
             )
 
             with torch.autocast(
-                "cuda" if self.gpu else "cpu", dtype=autocast_type
+                GPU_DEVICE if self.gpu else "cpu", dtype=autocast_type
             ):
                 model_outputs = self.model(descriptions_1, description_2)
                 loss = self.model_loss(*model_outputs, temp_label)
