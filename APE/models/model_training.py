@@ -104,6 +104,13 @@ class ModelTraining:
                 print("Loss value", loss)
                 print("Total loss", total_loss)
 
+            for name, param in self.model.named_parameters():
+                if torch.isnan(param.grad).any():
+                    print("nan gradient found!")
+
+                    if IS_DEBUG:
+                        raise SystemExit
+
             if batch_idx % 100 == 0:
                 print(f"\n\nLogging at {batch_idx}")
 
