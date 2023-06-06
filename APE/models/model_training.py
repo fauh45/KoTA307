@@ -79,8 +79,14 @@ class ModelTraining:
 
             self.optimizer.zero_grad()
 
+            autocast_type = (
+                torch.bfloat16
+                if os.getenv("AUTOCAST_TYPE") == "BFLOAT"
+                else torch.float16
+            )
+
             with torch.autocast(
-                "cuda" if self.gpu else "cpu", dtype=torch.bfloat16
+                "cuda" if self.gpu else "cpu", dtype=autocast_type
             ):
                 model_outputs = self.model(descriptions_1, description_2)
                 loss = self.model_loss(*model_outputs, temp_label)
