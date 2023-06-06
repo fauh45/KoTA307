@@ -106,7 +106,8 @@ class ModelTraining:
                         sort_by="cuda_time_total", row_limit=25
                     )
                 )
-                prof.export_chrome_trace(self.model.model_name + "_trace.json")
+                print(prof.key_averages(group_by_stack_n=5).table(sort_by="self_cuda_time_total", row_limit=15))
+                prof.export_stacks("/tmp/profiler_stacks.txt", "self_cuda_time_total")
 
             self.scaler.scale(loss).backward()
 
