@@ -45,7 +45,7 @@ class TrainingProductPairDataset(Dataset):
             descriptions = group["Product description"].tolist()
 
             random_choice = np.random.choice(
-                unique_product_not_user, size=len(descriptions)
+                unique_product_not_user, size=(len(descriptions) * 2)
             )
             random_choice_index = 0
 
@@ -59,8 +59,11 @@ class TrainingProductPairDataset(Dataset):
                 training_dataset_permuted.append(
                     [descriptions[i], random_choice[random_choice_index], -1]
                 )
+                training_dataset_permuted.append(
+                    [descriptions[i + 1], random_choice[random_choice_index + 1], -1]
+                )
 
-                random_choice_index += 1
+                random_choice_index += 2
 
         return pd.DataFrame(
             training_dataset_permuted,

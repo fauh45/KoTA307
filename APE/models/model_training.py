@@ -102,8 +102,15 @@ class ModelTraining:
                         batch_idx * len(descriptions_1),
                         len(training_data.dataset),
                         100.0 * batch_idx / len(training_data),
-                        total_loss / (batch_idx + 1),
+                        total_loss / ((batch_idx + 1) * len(descriptions_1)),
                     )
+                )
+
+                wandb.log(
+                    {
+                        "train/running_loss": total_loss
+                        / ((batch_idx + 1) * len(descriptions_1))
+                    }
                 )
 
                 if self.dry_run:
