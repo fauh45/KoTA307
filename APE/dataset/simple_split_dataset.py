@@ -58,7 +58,7 @@ class SimpleSplitDataset:
         self.save = save
 
         if IS_DEBUG:
-            print("Distribution of unique buyers", unique_buyer.describe())
+            print("Distribution of unique buyers", self.unique_buyer.describe())
 
     def get_dataset(self):
         train_dataset = TrainingProductPairDataset(
