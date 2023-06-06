@@ -1,4 +1,5 @@
 import argparse
+import os
 import torch
 import sys
 import traceback
@@ -34,7 +35,7 @@ def start_experiment():
         type=int,
         required=False,
         default=0,
-        help="Start of the experiment on index"
+        help="Start of the experiment on index",
     )
     parser.add_argument(
         "--dry-run",
@@ -71,8 +72,15 @@ def start_experiment():
         )
         print(f"Device used: {device}")
 
-        elmo_model = ELMoPairModel(args.elmo_path, args.gpu)
-        bert_model = BERTPairModel(args.bert_path, args.gpu)
+        models = []
+        models_to_load = os.getenv("MODELS", "ELMO,BERT").split(",")
+
+        if "ELMO" in models_to_load:
+            elmo_model = ELMoPairModel(args.elmo_path, args.gpu)
+            models.append(elmo_model)
+        if "BERT" in models_to_load:
+            bert_model = BERTPairModel(args.bert_path, args.gpu)
+            models.append(bert_model)
 
         experiment = Experiment(
             models=[elmo_model, bert_model],
@@ -87,7 +95,7 @@ def start_experiment():
             validate_only=args.validate_only,
             save_dir="experiment_output",
             gpu=args.gpu,
-            start_experiment_on=args.start_experiment_on
+            start_experiment_on=args.start_experiment_on,
         )
 
         experiment.run_experiment()
