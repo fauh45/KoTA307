@@ -10,6 +10,7 @@ import wandb
 import os
 
 from dataset.pair_training_dataset import TrainingProductPairDataset
+from helper.debug import IS_DEBUG
 from models.pair_embedding import PairEmbeddingModel
 
 
@@ -83,6 +84,10 @@ class ModelTraining:
             loss.backward()
 
             total_loss += loss.item() * len(descriptions_1)
+
+            if IS_DEBUG:
+                print("Loss value", loss)
+                print("Total loss", total_loss)
 
             self.optimizer.step()
 
