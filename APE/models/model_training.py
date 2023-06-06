@@ -91,7 +91,7 @@ class ModelTraining:
                 model_outputs = self.model(descriptions_1, description_2)
                 loss = self.model_loss(*model_outputs, temp_label)
 
-            self.scaler(loss).backward()
+            self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
 
             self.scaler.update()
