@@ -1,6 +1,7 @@
 from datetime import datetime
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torch.profiler import profile, record_function, ProfilerActivity
 from pathlib import Path
 from tqdm import trange, tqdm
 
@@ -86,11 +87,26 @@ class ModelTraining:
                 else torch.float16
             )
 
-            with torch.autocast(
-                "cuda" if self.gpu else "cpu", dtype=autocast_type
-            ):
-                model_outputs = self.model(descriptions_1, description_2)
-                loss = self.model_loss(*model_outputs, temp_label)
+            with profile(
+                activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+                record_shapes=True,
+            ) as prof:
+                with record_function("model_inference"):
+                    with torch.autocast(
+                        "cuda" if self.gpu else "cpu", dtype=autocast_type
+                    ):
+                        model_outputs = self.model(
+                            descriptions_1, description_2
+                        )
+                        loss = self.model_loss(*model_outputs, temp_label)
+
+            if IS_DEBUG:
+                print(
+                    prof.key_averages().table(
+                        sort_by="cuda_time_total", row_limit=25
+                    )
+                )
+                prof.export_chrome_trace(self.model.model_name + "_trace.json")
 
             self.scaler.scale(loss).backward()
 
