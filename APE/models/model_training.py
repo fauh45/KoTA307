@@ -92,6 +92,10 @@ class ModelTraining:
                 loss = self.model_loss(*model_outputs, temp_label)
 
             self.scaler.scale(loss).backward()
+
+            self.scaler.unscale_(self.optimizer)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+
             self.scaler.step(self.optimizer)
 
             self.scaler.update()
