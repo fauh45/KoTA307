@@ -38,6 +38,9 @@ def start_experiment():
         help="Start of the experiment on index",
     )
     parser.add_argument(
+        "--end-experiment-on", type=int, required=False, default=26
+    )
+    parser.add_argument(
         "--dry-run",
         action=argparse.BooleanOptionalAction,
         help="If the the experiment run is a dry run",
@@ -96,6 +99,7 @@ def start_experiment():
             save_dir="experiment_output",
             gpu=args.gpu,
             start_experiment_on=args.start_experiment_on,
+            end_experiment_on=args.end_experiment_on
         )
 
         experiment.run_experiment()

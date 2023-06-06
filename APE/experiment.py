@@ -34,6 +34,7 @@ class Experiment:
         train_val_split: float = 0.8,
         start_models_on: int = 0,
         start_experiment_on: int = 0,
+        end_experiment_on: int = 26,
         save_dir: str = "",
         dry_run: bool = False,
         validate_only: bool = False,
@@ -53,6 +54,7 @@ class Experiment:
             product(epoch, batch_size, learning_rate)
         )
         self.current_experiment_index = start_experiment_on
+        self.end_experiment_on = end_experiment_on
 
         self.models = models
         self.current_models_index = start_models_on
@@ -245,7 +247,8 @@ class Experiment:
                     )
 
                     for i, item in enumerate(selected_items.iterrows()):
-                        if i >= len(label): break
+                        if i >= len(label):
+                            break
 
                         corr.append(
                             pearsonr(
@@ -333,7 +336,7 @@ class Experiment:
             print("CURRENT MODEL", self.__get_current_model().model_name)
             print("\n\n")
 
-            for _ in range(len(self.experiment_hparams)):
+            for i in range(len(self.experiment_hparams)):
                 self.run_one_experiment()
 
                 print("\n\nMOVING EXPERIMENT FORWARD")
@@ -347,8 +350,10 @@ class Experiment:
                     print("\n\nBREAKING AFTER ONE HPARAMS ON DRY RUN\n\n")
                     break
 
-                if self.current_experiment_index > len(
-                    self.experiment_hparams
+                if (
+                    self.current_experiment_index
+                    > len(self.experiment_hparams)
+                    or self.end_experiment_on >= i
                 ):
                     break
 
