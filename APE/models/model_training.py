@@ -44,6 +44,7 @@ class ModelTraining:
         self.optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.model_lr
         )
+        self.scaler = torch.cuda.amp.grad_scaler.GradScaler()
 
         now = datetime.now()
         self.model_save_path = f"{model_save_path}/pair_embedding_{model.model_name}_{model_epoch}_{model_loss}_{model_lr}_{now.year}_{now.month}_{now.day}_{now.hour}.pt"
@@ -72,16 +73,22 @@ class ModelTraining:
             desc="Training Batch",
             total=len(training_data),
         ):
-            self.optimizer.zero_grad()
-
-            model_outputs = self.model(descriptions_1, description_2)
-
             temp_label = labels
             if self.gpu:
                 temp_label = torch.tensor(labels).to("cuda")
 
-            loss = self.model_loss(*model_outputs, temp_label)
-            loss.backward()
+            self.optimizer.zero_grad()
+
+            with torch.autocast(
+                "gpu" if self.gpu else "cpu", dtype=torch.bfloat16
+            ):
+                model_outputs = self.model(descriptions_1, description_2)
+                loss = self.model_loss(*model_outputs, temp_label)
+
+            self.scaler(loss).backward()
+            self.scaler.step(self.optimizer)
+
+            self.scaler.update()
 
             total_loss += loss.item() * len(descriptions_1)
 
@@ -90,8 +97,6 @@ class ModelTraining:
                 print("Model output shape", model_outputs[0].shape)
                 print("Loss value", loss)
                 print("Total loss", total_loss)
-
-            self.optimizer.step()
 
             if batch_idx % 100 == 0:
                 print(f"\n\nLogging at {batch_idx}")
