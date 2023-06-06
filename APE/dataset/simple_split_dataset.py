@@ -25,7 +25,15 @@ class SimpleSplitDataset:
             description_cleaner
         )
 
-        self.complete_dataset = df
+        B2B_SKU_CONDITION = (
+            df["Lineitem sku"].str.startswith(("AIA", "AXA", "OUTINT"))
+        ) | (
+            df["Lineitem sku"].str.contains(
+                r"^[^\d\W]{3}(?:CON|WED|DUK|PPB)[\w\d]{4}$"
+            )
+        )
+
+        self.complete_dataset = df[~B2B_SKU_CONDITION]
 
         unique_buyer = self.complete_dataset["Email"].value_counts(dropna=True)
 
@@ -58,7 +66,9 @@ class SimpleSplitDataset:
         self.save = save
 
         if IS_DEBUG:
-            print("Distribution of unique buyers", self.unique_buyer.describe())
+            print(
+                "Distribution of unique buyers", self.unique_buyer.describe()
+            )
 
     def get_dataset(self):
         train_dataset = TrainingProductPairDataset(

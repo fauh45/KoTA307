@@ -50,9 +50,11 @@ class TrainingProductPairDataset(Dataset):
             random_choice_index = 0
 
             for i in range(0, len(descriptions) - 1):
-                training_dataset_permuted.append(
-                    [descriptions[i], descriptions[i + 1], 1]
-                )
+                # Remove training on the same description
+                if descriptions[i] != descriptions[i + 1]:
+                    training_dataset_permuted.append(
+                        [descriptions[i], descriptions[i + 1], 1]
+                    )
 
                 training_dataset_permuted.append(
                     [descriptions[i], random_choice[random_choice_index], -1]

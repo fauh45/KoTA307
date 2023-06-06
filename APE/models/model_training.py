@@ -86,6 +86,8 @@ class ModelTraining:
             total_loss += loss.item() * len(descriptions_1)
 
             if IS_DEBUG:
+                print("Model output", model_outputs)
+                print("Model output shape", model_outputs[0].shape)
                 print("Loss value", loss)
                 print("Total loss", total_loss)
 
