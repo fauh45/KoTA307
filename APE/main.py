@@ -83,7 +83,7 @@ def start_experiment():
             models.append(bert_model)
 
         experiment = Experiment(
-            models=[elmo_model, bert_model],
+            models=models,
             dataset_path=args.dataset_path,
             train_val_split=0.8,
             recommendation_amount=3,
