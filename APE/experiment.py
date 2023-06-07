@@ -261,7 +261,7 @@ class Experiment:
 
                         spearman_corr.append(
                             spearmanr(
-                                item[i]["embeddings"][0],
+                                item[1]["embeddings"][0],
                                 label.at[i, "embeddings"][0],
                             ).statistic
                         )
