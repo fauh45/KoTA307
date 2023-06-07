@@ -54,8 +54,15 @@ class PairEmbeddingModel(nn.Module):
     def model_reset(self):
         pass
 
-    def forward(self, description_1: str, description_2: str):
-        desc_1_emb = self.run_to_model_once(description_1)
-        desc_2_emb = self.run_to_model_once(description_2)
+    def forward(self, description_1: tuple[str], description_2: tuple[str]):
+        all_desc = description_1 + description_2
+        all_desc_emb = self.run_to_model_once(all_desc)
+
+        half_point = int(len(all_desc_emb) // 2)
+
+        desc_1_emb, desc_2_emb = (
+            all_desc_emb[0:half_point],
+            all_desc_emb[half_point:],
+        )
 
         return desc_1_emb, desc_2_emb
