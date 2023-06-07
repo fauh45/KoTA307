@@ -1,3 +1,4 @@
+import os
 from tempfile import mkdtemp
 
 import os.path as path
@@ -14,6 +15,9 @@ class PairEmbeddingModel(nn.Module):
         super().__init__()
 
         self.model_name = model_name
+
+        if os.getenv("CUDNN_BENCHMARK", "FALSE") == "TRUE":
+            torch.backends.cudnn.benchmark = True
 
     def run_to_model_once(self, sentence_input: str):
         return NotImplementedError("Please implement run_to_model_once method")
