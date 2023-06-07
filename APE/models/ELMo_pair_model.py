@@ -18,7 +18,11 @@ class ELMoPairModel(PairEmbeddingModel):
     def __split_description(self, description: tuple[str, ...]):
         cleaned_desc = []
 
-        for desc in description:
+        temp_description = description
+        if isinstance(description, str):
+            temp_description = [description]
+
+        for desc in temp_description:
             temp = desc.split(" ")
 
             cleaned_desc.append(temp)
