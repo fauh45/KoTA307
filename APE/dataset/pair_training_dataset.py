@@ -56,12 +56,12 @@ class TrainingProductPairDataset(Dataset):
                         [descriptions[i], descriptions[i + 1], 1]
                     )
 
-                training_dataset_permuted.append(
-                    [descriptions[i], random_choice[random_choice_index], -1]
-                )
-                training_dataset_permuted.append(
-                    [descriptions[i + 1], random_choice[random_choice_index + 1], -1]
-                )
+                # training_dataset_permuted.append(
+                #     [descriptions[i], random_choice[random_choice_index], -1]
+                # )
+                # training_dataset_permuted.append(
+                #     [descriptions[i + 1], random_choice[random_choice_index + 1], -1]
+                # )
 
                 random_choice_index += 2
 

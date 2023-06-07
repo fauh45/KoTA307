@@ -1,6 +1,7 @@
 from itertools import product
 from typing import List
 from datetime import datetime
+from sklearn.isotonic import spearmanr
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 from sklearn.metrics.pairwise import cosine_distances
@@ -173,7 +174,8 @@ class Experiment:
                 dataset, batch_size=hparams[1], collate_fn=lambda x: x
             )
 
-            corr = []
+            pearson_corr = []
+            spearman_corr = []
             precision = []
             recall = []
             f1_score = []
@@ -250,26 +252,37 @@ class Experiment:
                         if i >= len(label):
                             break
 
-                        corr.append(
+                        pearson_corr.append(
                             pearsonr(
                                 item[1]["embeddings"][0],
                                 label.at[i, "embeddings"][0],
                             ).statistic
                         )
 
+                        spearman_corr.append(
+                            spearmanr(
+                                item[i]["embeddings"][0],
+                                label.at[i, "embeddings"][0],
+                            ).statistic
+                        )
+
                 print("\nBatch done!")
-                print("Avg Correlation", np.average(corr))
+                print("Avg Correlation", np.average(pearson_corr))
                 print("Avg Precision", np.average(precision))
                 print("Avg Recall", np.average(recall))
                 print("Avg F1 Score", np.average(f1_score))
+                print("Avg Spearman Rho", np.average(spearman_corr))
                 print("\n")
 
                 wandb.log(
                     {
-                        f"validate/corr-{n_rec}": np.average(corr),
+                        f"validate/corr-{n_rec}": np.average(pearson_corr),
                         f"validate/precision-{n_rec}": np.average(precision),
                         f"validate/recall-{n_rec}": np.average(recall),
                         f"validate/f1-{n_rec}": np.average(f1_score),
+                        f"validate/spearmanr-{n_rec}": np.average(
+                            spearman_corr
+                        ),
                     }
                 )
 
@@ -289,11 +302,11 @@ class Experiment:
             )
 
             print(
-                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
+                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(pearson_corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
             )
 
             return (
-                np.average(corr),
+                np.average(pearson_corr),
                 np.average(precision),
                 np.average(recall),
                 np.average(f1_score),
