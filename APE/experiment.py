@@ -349,7 +349,7 @@ class Experiment:
             print("CURRENT MODEL", self.__get_current_model().model_name)
             print("\n\n")
 
-            for i in range(len(self.experiment_hparams)):
+            for _ in range(len(self.experiment_hparams)):
                 self.run_one_experiment()
 
                 print("\n\nMOVING EXPERIMENT FORWARD")
@@ -366,7 +366,7 @@ class Experiment:
                 if (
                     self.current_experiment_index
                     > len(self.experiment_hparams)
-                    or i >= self.end_experiment_on
+                    or self.current_experiment_index >= self.end_experiment_on
                 ):
                     break
 
