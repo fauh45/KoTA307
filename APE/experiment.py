@@ -353,7 +353,7 @@ class Experiment:
                 if (
                     self.current_experiment_index
                     > len(self.experiment_hparams)
-                    or self.end_experiment_on >= i
+                    or i >= self.end_experiment_on
                 ):
                     break
 
