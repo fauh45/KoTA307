@@ -50,15 +50,15 @@ class SimpleSplitDataset:
         non_outlier_unique_buyer = unique_buyer[~non_outlier]
 
         self.unique_buyer = non_outlier_unique_buyer.index.to_list()
-        self.training_unique_buyer = unique_buyer.sample(
+        self.training_unique_buyer = non_outlier_unique_buyer.sample(
             frac=train_val_split, random_state=random_state
         )
-        self.validation_unique_buyer = unique_buyer.drop(
+        self.validation_unique_buyer = non_outlier_unique_buyer.drop(
             self.training_unique_buyer.index
         )
 
         self.complete_dataset = self.complete_dataset[
-            self.complete_dataset["Email"].isin(unique_buyer.index)
+            self.complete_dataset["Email"].isin(non_outlier_unique_buyer.index)
         ]
 
         self.unique_items = self.get_all_unique_items(self.complete_dataset)
@@ -67,7 +67,8 @@ class SimpleSplitDataset:
 
         if IS_DEBUG:
             print(
-                "Distribution of unique buyers", non_outlier_unique_buyer.describe()
+                "Distribution of unique buyers",
+                non_outlier_unique_buyer.describe(),
             )
 
     def get_dataset(self):

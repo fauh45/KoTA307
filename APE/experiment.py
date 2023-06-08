@@ -1,11 +1,10 @@
 from itertools import product
 from typing import List
 from datetime import datetime
-from sklearn.isotonic import spearmanr
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 from sklearn.metrics.pairwise import cosine_distances
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, spearmanr
 from tqdm import tqdm
 
 import os
