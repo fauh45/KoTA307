@@ -339,7 +339,7 @@ class Experiment:
         if not self.validate_only:
             self.train(train_dataset)
 
-        for n in tqdm([3, 4, 5, 8, 10, 25]):
+        for n in tqdm([1, 3, 4, 5, 8, 10, 25, 50, 100]):
             self.validate(validate_dataset, n)
 
     def run_experiment(self):
