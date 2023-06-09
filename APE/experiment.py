@@ -398,6 +398,9 @@ class Experiment:
         self.validate(validate_dataset)
 
     def run_experiment(self):
+        ignored_experiments = os.getenv("IGNORED_EXPERIMENTS", "").split("")
+        ignored_experiments = [int(index) for index in ignored_experiments]
+
         for _ in range(len(self.models)):
             print("\n\nRUNNING NEW MODEL")
             print("CURRENT MODEL", self.__get_current_model().model_name)
@@ -410,6 +413,10 @@ class Experiment:
                 self.__move_experiment_index_forward()
                 print("CURRENT EXPERIMENT", self.__get_current_experiment())
                 print("\n\n")
+
+                if self.current_experiment_index in ignored_experiments:
+                    print("\n\nIGNORED EXPERIMENTS INDEX\nMOVING TO THE NEXT\n\n")
+                    continue
 
                 self.__reset_current_model()
 
