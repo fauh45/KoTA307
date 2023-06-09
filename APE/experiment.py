@@ -157,7 +157,9 @@ class Experiment:
             )
 
             with torch.autocast(
-                "cuda" if self.gpu else "cpu", dtype=autocast_type
+                "cuda" if self.gpu else "cpu",
+                enabled=os.getenv("AUTOCAST", "TRUE") == "TRUE",
+                dtype=autocast_type,
             ):
                 # * Done because modin cannot pickle "__create_embeddings"
                 all_unique_item["embeddings"] = [
@@ -248,7 +250,7 @@ class Experiment:
                         }
                     )
 
-            for n_rec in range([1, 3, 4, 5, 8, 10, 25, 50, 100]):
+            for n_rec in [1, 3, 4, 5, 8, 10, 25, 50, 100]:
                 precision = []
                 recall = []
                 f1_score = []
