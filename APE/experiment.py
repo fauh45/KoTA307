@@ -161,7 +161,6 @@ class Experiment:
                 enabled=os.getenv("AUTOCAST", "TRUE") == "TRUE",
                 dtype=autocast_type,
             ):
-                # * Done because modin cannot pickle "__create_embeddings"
                 all_unique_item["embeddings"] = [
                     self.__create_embeddings(desc)
                     for desc in tqdm(
