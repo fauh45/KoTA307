@@ -387,7 +387,7 @@ class Experiment:
                 "lr": hparams[2],
             },
             reinit=True,
-            name=f"STANDARD_{'DRY_RUN' if self.dry_run else 'FULL'}_"
+            name=f"{os.getenv('WANDB_PREFIX', '')}STANDARD_{'DRY_RUN' if self.dry_run else 'FULL'}_"
             + self.__get_summary_comment()
             + f"_TIME_{datetime.now().isoformat()}",
         )
