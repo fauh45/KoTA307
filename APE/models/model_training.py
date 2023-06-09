@@ -87,7 +87,9 @@ class ModelTraining:
             )
 
             with torch.autocast(
-                "cuda" if self.gpu else "cpu", dtype=autocast_type
+                "cuda" if self.gpu else "cpu",
+                enabled=os.getenv("AUTOCAST", "TRUE") == "TRUE",
+                dtype=autocast_type,
             ):
                 model_outputs = self.model(descriptions_1, description_2)
                 loss = self.model_loss(*model_outputs, temp_label)
