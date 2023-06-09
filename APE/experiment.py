@@ -399,7 +399,6 @@ class Experiment:
 
     def run_experiment(self):
         ignored_experiments = os.getenv("IGNORED_EXPERIMENTS", "").split(",")
-        ignored_experiments = [int(index) for index in ignored_experiments]
 
         for _ in range(len(self.models)):
             print("\n\nRUNNING NEW MODEL")
@@ -407,29 +406,51 @@ class Experiment:
             print("\n\n")
 
             for _ in range(len(self.experiment_hparams)):
-                self.run_one_experiment()
+                try:
+                    self.run_one_experiment()
 
-                print("\n\nMOVING EXPERIMENT FORWARD")
-                self.__move_experiment_index_forward()
-                print("CURRENT EXPERIMENT", self.__get_current_experiment())
-                print("\n\n")
+                    print("\n\nMOVING EXPERIMENT FORWARD")
+                    self.__move_experiment_index_forward()
+                    print(
+                        "CURRENT EXPERIMENT", self.__get_current_experiment()
+                    )
+                    print("\n\n")
 
-                if self.current_experiment_index in ignored_experiments:
-                    print("\n\nIGNORED EXPERIMENTS INDEX\nMOVING TO THE NEXT\n\n")
-                    continue
+                    if (
+                        f"{self.__get_current_model().model_name}:{self.current_experiment_index}"
+                        in ignored_experiments
+                    ):
+                        print(
+                            "\n\nIGNORED EXPERIMENTS INDEX\nMOVING TO THE NEXT\n\n"
+                        )
+                        continue
 
-                self.__reset_current_model()
+                    self.__reset_current_model()
 
-                if self.dry_run:
-                    print("\n\nBREAKING AFTER ONE HPARAMS ON DRY RUN\n\n")
-                    break
+                    if self.dry_run:
+                        print("\n\nBREAKING AFTER ONE HPARAMS ON DRY RUN\n\n")
+                        break
 
-                if (
-                    self.current_experiment_index
-                    > len(self.experiment_hparams)
-                    or self.current_experiment_index >= self.end_experiment_on
-                ):
-                    break
+                    if (
+                        self.current_experiment_index
+                        > len(self.experiment_hparams)
+                        or self.current_experiment_index
+                        >= self.end_experiment_on
+                    ):
+                        break
+                except Exception as e:
+                    print("\n\nRun Has Failed!")
+                    print(e)
+
+                    wandb.alert(
+                        title="RUN ERROR",
+                        text=f"Model: {self.__get_current_model().model_name}\nRun Index: {self.current_experiment_index}\nRun Hyperparams: {self.__get_current_experiment()}\nError: {e}",
+                    )
+
+                    wandb.finish(exit_code=1)
+
+                    print("\n\nTrying to recover")
+                    self.__get_current_model().clean_cache(self.gpu)
 
             self.__move_model_index_forward()
 
