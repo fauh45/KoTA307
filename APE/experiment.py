@@ -357,15 +357,15 @@ class Experiment:
                     }
                 )
 
-                print(
-                    f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(pearson_corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
-                )
+            print(
+                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(pearson_corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
+            )
 
-                return (
-                    np.average(precision),
-                    np.average(recall),
-                    np.average(f1_score),
-                )
+            return (
+                np.average(precision),
+                np.average(recall),
+                np.average(f1_score),
+            )
 
     def run_one_experiment(self):
         (
