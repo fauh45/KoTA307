@@ -198,7 +198,7 @@ class Experiment:
                         all_unique_item.index.isin(embeddings_distance.index)
                     ]
 
-                    n_recommended = n_rec
+                    n_recommended = len(label)
                     n_relevant_and_recommended = len(
                         np.intersect1d(
                             selected_items.index, label["Lineitem sku"]
