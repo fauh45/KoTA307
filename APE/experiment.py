@@ -398,7 +398,7 @@ class Experiment:
         self.validate(validate_dataset)
 
     def run_experiment(self):
-        ignored_experiments = os.getenv("IGNORED_EXPERIMENTS", "").split("")
+        ignored_experiments = os.getenv("IGNORED_EXPERIMENTS", "").split(",")
         ignored_experiments = [int(index) for index in ignored_experiments]
 
         for _ in range(len(self.models)):
