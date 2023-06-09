@@ -139,7 +139,7 @@ class Experiment:
 
         training_model.train()
 
-    def validate(self, dataset: RecommendationValidationDataset, n_rec: int):
+    def validate(self, dataset: RecommendationValidationDataset):
         current_model = self.__get_current_model()
 
         current_model.eval()
@@ -175,13 +175,7 @@ class Experiment:
 
             pearson_corr = []
             spearman_corr = []
-            precision = []
-            recall = []
-            f1_score = []
-
-            final_data = []
-
-            for batch in tqdm(validation_data, "Validating bath"):
+            for batch in tqdm(validation_data, "Validating batch for corr"):
                 for seed, label in tqdm(
                     batch, "Validating each case in batch"
                 ):
@@ -197,20 +191,12 @@ class Experiment:
                             )
                         )
                         .sort_values(ascending=True)
-                        .head(n_rec)
+                        .head(len(label))
                     )
 
                     selected_items = all_unique_item[
                         all_unique_item.index.isin(embeddings_distance.index)
                     ]
-
-                    final_data.append(
-                        [
-                            seed.to_json(orient="records"),
-                            label.to_json(orient="records"),
-                            selected_items.to_json(orient="records"),
-                        ]
-                    )
 
                     n_recommended = n_rec
                     n_relevant_and_recommended = len(
@@ -227,30 +213,11 @@ class Experiment:
                         n_relevant_and_recommended + n_relevant_not_recommended
                     )
 
-                    batch_precision = (
-                        n_relevant_and_recommended / n_recommended
-                    )
-                    batch_recall = n_relevant_and_recommended / n_relevant
-
-                    if (batch_recall + batch_precision) > 0:
-                        batch_f1_score = (
-                            2 * batch_recall * batch_precision
-                        ) / (batch_recall + batch_precision)
-                    else:
-                        batch_f1_score = 0
-
-                    precision.append(batch_precision)
-                    recall.append(batch_recall)
-                    f1_score.append(batch_f1_score)
-
                     label["embeddings"] = label["Lineitem sku"].apply(
                         get_embeddings
                     )
 
                     for i, item in enumerate(selected_items.iterrows()):
-                        if i >= len(label):
-                            break
-
                         pearson_corr.append(
                             pearsonr(
                                 item[1]["embeddings"][0],
@@ -265,51 +232,129 @@ class Experiment:
                             ).statistic
                         )
 
-                print("\nBatch done!")
-                print("Avg Correlation", np.average(pearson_corr))
-                print("Avg Precision", np.average(precision))
-                print("Avg Recall", np.average(recall))
-                print("Avg F1 Score", np.average(f1_score))
-                print("Avg Spearman Rho", np.average(spearman_corr))
-                print("\n")
+                    wandb.log(
+                        {
+                            f"validate/corr": np.average(pearson_corr),
+                            f"validate/spearmanr": np.average(spearman_corr),
+                        }
+                    )
+
+            for n_rec in range([1, 3, 4, 5, 8, 10, 25, 50, 100]):
+                precision = []
+                recall = []
+                f1_score = []
+
+                final_data = []
+
+                for batch in tqdm(validation_data, "Validating batch"):
+                    for seed, label in tqdm(
+                        batch, "Validating each case in batch"
+                    ):
+                        seed_embeddings = get_embeddings(seed["Lineitem sku"])
+
+                        embeddings_distance = (
+                            all_unique_item.loc[
+                                all_unique_item.index != seed["Lineitem sku"]
+                            ]["embeddings"]
+                            .apply(
+                                lambda emb2: cosine_distances(
+                                    seed_embeddings, emb2
+                                )
+                            )
+                            .sort_values(ascending=True)
+                            .head(n_rec)
+                        )
+
+                        selected_items = all_unique_item[
+                            all_unique_item.index.isin(
+                                embeddings_distance.index
+                            )
+                        ]
+
+                        final_data.append(
+                            [
+                                seed.to_json(orient="records"),
+                                label.to_json(orient="records"),
+                                selected_items.to_json(orient="records"),
+                            ]
+                        )
+
+                        n_recommended = n_rec
+                        n_relevant_and_recommended = len(
+                            np.intersect1d(
+                                selected_items.index, label["Lineitem sku"]
+                            )
+                        )
+                        n_relevant_not_recommended = len(
+                            np.setdiff1d(
+                                label["Lineitem sku"], selected_items.index
+                            )
+                        )
+                        n_relevant = (
+                            n_relevant_and_recommended
+                            + n_relevant_not_recommended
+                        )
+
+                        batch_precision = (
+                            n_relevant_and_recommended / n_recommended
+                        )
+                        batch_recall = n_relevant_and_recommended / n_relevant
+
+                        if (batch_recall + batch_precision) > 0:
+                            batch_f1_score = (
+                                2 * batch_recall * batch_precision
+                            ) / (batch_recall + batch_precision)
+                        else:
+                            batch_f1_score = 0
+
+                        precision.append(batch_precision)
+                        recall.append(batch_recall)
+                        f1_score.append(batch_f1_score)
+
+                        label["embeddings"] = label["Lineitem sku"].apply(
+                            get_embeddings
+                        )
+
+                    print("\nBatch done!")
+                    print("Avg Precision", np.average(precision))
+                    print("Avg Recall", np.average(recall))
+                    print("Avg F1 Score", np.average(f1_score))
+                    print("\n")
+
+                    wandb.log(
+                        {
+                            f"validate/precision-{n_rec}": np.average(
+                                precision
+                            ),
+                            f"validate/recall-{n_rec}": np.average(recall),
+                            f"validate/f1-{n_rec}": np.average(f1_score),
+                        }
+                    )
+
+                    if self.dry_run:
+                        print(
+                            "\n\nEXITING VALIDATION AFTER ONE BATCH ON DRY RUN\n\n"
+                        )
+                        break
 
                 wandb.log(
                     {
-                        f"validate/corr-{n_rec}": np.average(pearson_corr),
-                        f"validate/precision-{n_rec}": np.average(precision),
-                        f"validate/recall-{n_rec}": np.average(recall),
-                        f"validate/f1-{n_rec}": np.average(f1_score),
-                        f"validate/spearmanr-{n_rec}": np.average(
-                            spearman_corr
-                        ),
+                        f"validate_result_{n_rec}": wandb.Table(
+                            columns=["seed", "label", "selected"],
+                            data=final_data,
+                        )
                     }
                 )
 
-                if self.dry_run:
-                    print(
-                        "\n\nEXITING VALIDATION AFTER ONE BATCH ON DRY RUN\n\n"
-                    )
-                    break
+                print(
+                    f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(pearson_corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
+                )
 
-            wandb.log(
-                {
-                    f"validate_result_{n_rec}": wandb.Table(
-                        columns=["seed", "label", "selected"],
-                        data=final_data,
-                    )
-                }
-            )
-
-            print(
-                f"Validation {current_model.model_name}, using Epoch {hparams[0]} Batch Size {hparams[1]} LR {hparams[2]} Average correlation {np.average(pearson_corr)} Average precision {np.average(precision)} Average recall {np.average(recall)} Average F1-Score {np.average(f1_score)}"
-            )
-
-            return (
-                np.average(pearson_corr),
-                np.average(precision),
-                np.average(recall),
-                np.average(f1_score),
-            )
+                return (
+                    np.average(precision),
+                    np.average(recall),
+                    np.average(f1_score),
+                )
 
     def run_one_experiment(self):
         (
@@ -339,8 +384,7 @@ class Experiment:
         if not self.validate_only:
             self.train(train_dataset)
 
-        for n in tqdm([1, 3, 4, 5, 8, 10, 25, 50, 100]):
-            self.validate(validate_dataset, n)
+        self.validate(validate_dataset)
 
     def run_experiment(self):
         for _ in range(len(self.models)):
