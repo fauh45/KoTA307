@@ -150,14 +150,23 @@ class Experiment:
         all_unique_item = self.__simple_split_dataset.unique_items
 
         with torch.no_grad():
-            # * Done because modin cannot pickle "__create_embeddings"
-            all_unique_item["embeddings"] = [
-                self.__create_embeddings(desc)
-                for desc in tqdm(
-                    all_unique_item["Product description"].values,
-                    "Generating embeddings for all unique items",
-                )
-            ]
+            autocast_type = (
+                torch.bfloat16
+                if os.getenv("AUTOCAST_TYPE") == "BFLOAT"
+                else torch.float16
+            )
+
+            with torch.autocast(
+                "cuda" if self.gpu else "cpu", dtype=autocast_type
+            ):
+                # * Done because modin cannot pickle "__create_embeddings"
+                all_unique_item["embeddings"] = [
+                    self.__create_embeddings(desc)
+                    for desc in tqdm(
+                        all_unique_item["Product description"].values,
+                        "Generating embeddings for all unique items",
+                    )
+                ]
 
             temp_unique_item = all_unique_item.reset_index()
             temp_unique_item["embeddings"] = temp_unique_item[
