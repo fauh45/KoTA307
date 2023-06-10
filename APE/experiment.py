@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from sklearn.metrics.pairwise import cosine_distances
 from scipy.stats import pearsonr, spearmanr
 from tqdm import tqdm
+from wandb.sdk.artifacts.artifacts_cache import get_artifacts_cache
 
 import os
 import torch
@@ -406,6 +407,15 @@ class Experiment:
 
             for _ in range(len(self.experiment_hparams)):
                 try:
+                    try:
+                        cache = get_artifacts_cache()
+                        reclaimed_bytes = cache.cleanup(10e6, True)
+
+                        print(f"Reclaimed {reclaimed_bytes}")
+                    except Exception as ce:
+                        print("\n\nError on cleaning cache")
+                        print(f"{e}")
+
                     self.run_one_experiment()
 
                     print("\n\nMOVING EXPERIMENT FORWARD")
