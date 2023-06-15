@@ -44,10 +44,10 @@ class SimpleSplitDataset:
         Q3 = unique_buyer.quantile(0.75)
         IQR = Q3 - Q1
 
-        non_outlier = (unique_buyer < (Q1 - 1.5 * IQR)) | (
+        outlier_condition = (unique_buyer < (Q1 - 1.5 * IQR)) | (
             unique_buyer > (Q3 + 1.5 * IQR)
         )
-        non_outlier_unique_buyer = unique_buyer[~non_outlier]
+        non_outlier_unique_buyer = unique_buyer[~outlier_condition]
 
         self.unique_buyer = non_outlier_unique_buyer.index.to_list()
         self.training_unique_buyer = non_outlier_unique_buyer.sample(
